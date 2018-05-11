@@ -5,10 +5,14 @@ import RegularLanguages.RegularLanguage.InputType;
 public class RegularExpression extends RegularLanguage{
 
 	private String re;
+	private String formattedRE;
+	private String completeRE;
 	
 	public RegularExpression(String input) {
 		super(input, InputType.RE);
 		this.re = input;
+		this.formattedRE = input.replaceAll("\\s+", "");
+		this.completeRE = this.setCompleteExpression(formattedRE);
 	}
 
 	public static RegularLanguage isValidRE(String inp) {
@@ -43,6 +47,27 @@ public class RegularExpression extends RegularLanguage{
 		return null;
 	}
 	
+	public String getCompleteExpression() {
+		return completeRE;
+	}
+	
+	public String setCompleteExpression(String in) {
+		
+		String re = "";
+		
+		re += in.charAt(0);
+		for (int i = 1; i < in.length(); i++) {
+			char c = in.charAt(i);
+			if (Character.isLetterOrDigit(c) || c == '(') {
+				if (!(in.charAt(i-1) == '(' || in.charAt(i-1) == '.' || in.charAt(i-1) == '|')) {
+					re += '.';
+				}
+			}
+			re += c;
+		}
+		return re;
+	}
+	
 	public static boolean validateInput(String inp) {
 		inp = inp.replaceAll("\\s+", "");
 		
@@ -61,7 +86,17 @@ public class RegularExpression extends RegularLanguage{
 					return false;
 				}
 			}
+			if (i == 0) {
+				continue;			
+			}
+			if (c == '*' || c == '+' || c == '.' || c == '?') {
+				if (inp.charAt(i-1) == '|' || inp.charAt(i-1) == '.') {
+					return false;
+				}
+			}
 		}
+		
+		
 		return pcount == 0;
 	}
 
