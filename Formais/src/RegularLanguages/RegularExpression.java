@@ -1,5 +1,13 @@
 package RegularLanguages;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.Stack;
+import java.util.TreeSet;
+
 import RegularLanguages.RegularLanguage.InputType;
 
 public class RegularExpression extends RegularLanguage{
@@ -43,8 +51,7 @@ public class RegularExpression extends RegularLanguage{
 
 	@Override
 	public FiniteAutomata getFA() {
-		// TODO Auto-generated method stub
-		return null;
+		return deSimone();
 	}
 	
 	public String getCompleteExpression() {
@@ -99,5 +106,195 @@ public class RegularExpression extends RegularLanguage{
 		
 		return pcount == 0;
 	}
+	
+	public static int operatorPriority(char op) {
+		if (op == '*' || op == '+' || op == '?') {
+			return 3;
+		} else if (op == '.'){
+			return 2;
+		} else if (op == '|') {
+			return 1;
+		} else {
+			return 0;
+		}
+			
+	}
+	
+	public String toPostOrder() {
+		String s = "";
+		Stack<Character> stack = new Stack<Character>();
+		char c;
+		for (int i = 0; i < completeRE.length(); i++) {
+			c = completeRE.charAt(i);
+			// If the scanned character is an operand, add it to output.
+			if (Character.isLetterOrDigit(c) || c == '&') {
+				s += c;
+			} else if (c == '(') { // If the scanned character is an '(', push it to the stack.
+				stack.push(c);
+			} else if (c == ')') { //  If the scanned character is an ')', pop and output from the stack 
+	            					// until an '(' is encountered.
+				while (!stack.isEmpty() && stack.peek() != '(') {
+                    s += stack.pop();
+				}
+                if (!stack.isEmpty() && stack.peek() != '(') {
+                    return "Invalid Expression"; // invalid expression                
+                } else { 
+                    stack.pop();
+                }
+			} else { // an operator is encountered
+				while (!stack.isEmpty() && operatorPriority(c) <= operatorPriority(stack.peek())) {
+                    s += stack.pop();
+				}
+                stack.push(c);
+			}
+		} 
+		// pop all the operators from the stack
+        while (!stack.isEmpty()) {
+            s += stack.pop();
+        }
+		return s;
+	}
+	
+	protected FiniteAutomata deSimone(){
+		Node root = buildTree(this.toPostOrder());
+		//printPreorder(root);
+		
+		createThreaded(root);
+		
+		SortedSet<Character> alphabet = new TreeSet<Character>();
+		for (int i = 0; i < formattedRE.length(); i++) {
+			char c = formattedRE.charAt(i);
+			if (Character.isLetterOrDigit(c)) {
+				alphabet.add(c);
+			}
+		}
+		
+		FiniteAutomata fa = new FiniteAutomata(InputType.RG, alphabet);
+		
+		SortedSet<HashMap<Integer,Character>> composition = getComposition(root);
+		return fa;
+	}
+	
+	protected SortedSet<HashMap<Integer,Character>> getComposition(Node root){
+		SortedSet<HashMap<Integer,Character>> composition = new TreeSet<HashMap<Integer,Character>>();
+		Node current = root;
+		
+		Set<Node> firstNodes = goDown(current);
+		
+		
+		return composition;
+	}
+	
+	protected Set<Node> goDown(Node current){
+		
+		
+		return null;
+	}
+	
+	
+	protected Node buildTree(String in) {
+		int countLeafs = 0;
+		Stack<Node> stack = new Stack<>();
+		for (int i = 0; i < in.length(); i++) {
+			char c = in.charAt(i);
+			Node node = new Node(c);
+			
+			if (Character.isLetterOrDigit(c) || c == '&') {
+				node.n = countLeafs;
+				countLeafs++;
+				stack.push(node);
+			} else {
+				if (operatorPriority(c) == operatorPriority('*')) {
+                    node.left = stack.pop();
+                } else {
+                    node.right = stack.pop();
+                    node.left = stack.pop();
+                }
+                stack.push(node);
+			}
+		}
+		return stack.pop();
+	}
+	
+	void printPreorder(Node node)
+	{
+	     if (node == null)
+	          return;
+	     System.out.print(node.data);
+	     
+	     printPreorder(node.left);  
+	 
+	     printPreorder(node.right);
+	} 
+	
+	
+	
+	
+	
+	
+	
+	
+	void populateQueue(Node node, Queue<Node> q) 
+    {
+        if (node == null)
+            return;
+        if (node.left != null)
+            populateQueue(node.left, q);
+        q.add(node);
+        if (node.right != null)
+            populateQueue(node.right, q);
+    }
+  
+    // Function to traverse queue, and make tree threaded
+    void createThreadedUtil(Node node, Queue<Node> q) 
+    {
+        if (node == null)
+            return;
+  
+        if (node.left != null) 
+            createThreadedUtil(node.left, q);        
+        q.remove();
+  
+        if (node.right != null) 
+            createThreadedUtil(node.right, q);        
+  
+        // If right pointer is NULL, link it to the
+        // inorder successor and set 'isThreaded' bit.
+        else
+        {
+            node.right = q.peek();
+            node.isThreaded = true;
+        }
+    }
+  
+    // This function uses populateQueue() and
+    // createThreadedUtil() to convert a given binary tree 
+    // to threaded tree.
+    void createThreaded(Node node) 
+    {
+        // Create a queue to store inorder traversal
+        Queue<Node> q = new LinkedList<Node>();
+  
+        // Store inorder traversal in queue
+        populateQueue(node, q);
+  
+        // Link NULL right pointers to inorder successor
+        createThreadedUtil(node, q);
+    }
+}
 
+
+class Node 
+{
+    public char data;
+    public Node left, right;
+    public boolean isThreaded;
+    public int n;
+  
+    public Node(char item) 
+    {
+        data = item;
+        left = right = null;
+        int n = -1;
+    }
 }
