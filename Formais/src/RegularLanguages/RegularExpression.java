@@ -1,7 +1,10 @@
 package RegularLanguages;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.SortedSet;
@@ -172,6 +175,7 @@ public class RegularExpression extends RegularLanguage{
 		FiniteAutomata fa = new FiniteAutomata(InputType.RG, alphabet);
 		
 		SortedSet<HashMap<Integer,Character>> composition = getComposition(root);
+		
 		return fa;
 	}
 	
@@ -179,18 +183,107 @@ public class RegularExpression extends RegularLanguage{
 		SortedSet<HashMap<Integer,Character>> composition = new TreeSet<HashMap<Integer,Character>>();
 		Node current = root;
 		
-		Set<Node> firstNodes = goDown(current);
+		Set<Node> firstNodes = goDown(current, new HashSet<Node>());
+		Set<Node> nextNodes = firstNodes;
+		
 		
 		
 		return composition;
 	}
 	
-	protected Set<Node> goDown(Node current){
+	protected Set<Node> goDown(Node current, HashSet<Node> visited){
 		
-		
-		return null;
+		char c = current.data;
+		//Stack<Node> nodesToGo = new Stack<Node>();
+		Set<Node> composition = new HashSet<Node>();
+		if (c == '&') {
+			if (visited.contains(current)) {
+				return composition;
+			} else {
+				visited.add(current);
+			}
+		}
+		switch(c) {
+			case '*':
+			case '?':
+				composition.addAll(goDown(current.left, visited));
+				if (current.right != null) {
+                	composition.addAll(goUp(current.right, visited));
+                } else {
+                	composition.add(new Node('$'));
+                } break;
+			case '|':
+				composition.addAll(goDown(current.left, visited));
+				composition.addAll(goDown(current.right, visited)); break;
+			case '.':
+			case '+':
+				composition.addAll(goDown(current.left, visited)); break;
+			case '&':
+				if (current.right != null) {
+                	composition.addAll(goUp(current.right, visited));
+                } else {
+                    composition.add(new Node('$'));
+                }
+                break;
+			default:
+            	composition.add(current);
+            	break;
+            }
+		return composition;
 	}
 	
+	protected Set<Node> goUp(Node current, HashSet<Node> visited){
+		char c = current.data;
+		//Stack<Node> nodesToGo = new Stack<Node>();
+		Set<Node> composition = new HashSet<Node>();
+		if (c == '*' || c == '+') {
+			if (visited.contains(current)) {
+				return composition;
+			} else {
+				visited.add(current);
+			}
+		}
+		
+		switch(c) {
+		case '*':
+		case '+':
+			composition.addAll(goDown(current.left, visited));
+			if (current.right != null) {
+				composition.addAll(goUp(current.right, visited));
+			} else {
+				composition.add(new Node('$'));
+			} break;
+		case '?':
+			if (current.right != null) {
+				composition.addAll(goUp(current.right, visited));
+			} else {
+				composition.add(new Node('$'));
+			} break;
+		case '|':
+			Node rightNode = current.right; 
+            while (rightNode.data == '.' || rightNode.data == '|') {
+            	rightNode = rightNode.right;
+            }
+            if (rightNode.right != null) {
+                composition.addAll(goUp(rightNode.right, visited));
+            } else {
+                composition.add(new Node('$'));
+            }
+            break;
+		case '.':
+			composition.addAll(goDown(current.right, visited));
+			break;
+		
+		default:
+            if (current.right != null) {
+                composition.addAll(goUp(current.right, visited));
+            } else {
+                composition.add(new Node('$'));
+            }
+            break;
+        }
+		return composition;
+	}
 	
 	protected Node buildTree(String in) {
 		int countLeafs = 0;
@@ -281,6 +374,35 @@ public class RegularExpression extends RegularLanguage{
         // Link NULL right pointers to inorder successor
         createThreadedUtil(node, q);
     }
+    
+    Node leftMost(Node node) 
+    {
+        while (node != null && node.left != null)
+            node = node.left;
+        return node;
+    }
+  
+    // Function to do inorder traversal of a threadded binary tree
+    void inOrder(Node node) 
+    {
+        if (node == null) 
+            return;        
+  
+        // Find the leftmost node in Binary Tree
+        Node cur = leftMost(node);
+  
+        while (cur != null) 
+        {
+            System.out.print(" " + cur.data + " ");
+  
+            // If this Node is a thread Node, then go to
+            // inorder successor
+            if (cur.isThreaded == true)
+                cur = cur.right;
+            else // Else go to the leftmost child in right subtree
+                cur = leftMost(cur.right);
+        }
+    }
 }
 
 
@@ -297,4 +419,21 @@ class Node
         left = right = null;
         int n = -1;
     }
+    
+    @Override
+	public boolean equals(Object obj) {
+		if(obj == null || !Node.class.isAssignableFrom(obj.getClass())) {
+			return false;
+		}
+		Node node = (Node)obj;
+		if (node.data == this.data
+				&& node.n == this.n) {
+			return true;
+		}
+		return false;
+	}
+    @Override
+	public int hashCode() {
+		return Objects.hash(this.n, this.data);
+	}
 }
