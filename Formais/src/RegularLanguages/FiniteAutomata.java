@@ -18,7 +18,7 @@ public class FiniteAutomata extends RegularLanguage{
 		super(type);
 		alphabet = _alphabet;
 		transitions = new HashMap<State, HashMap<Character, State>>();
-		errorState = new State("$", false);
+		errorState = new State("$", false, -1);
 		states = new TreeSet<State>();
 		
 	}
@@ -30,12 +30,11 @@ public class FiniteAutomata extends RegularLanguage{
 		
 		Iterator<Character> itSymbol = alphabet.iterator();
 		while(itSymbol.hasNext()) {
-			def += "|" + itSymbol.next(); 
+			def += " |" + itSymbol.next(); 
 		}
 		def += "\n";
 		
 		Iterator<State> itStates = states.iterator();
-		Iterator<HashMap<Character, State>> itTransition;
 		while(itStates.hasNext()) {
 			itSymbol = alphabet.iterator();
 			State st = itStates.next();
@@ -43,6 +42,9 @@ public class FiniteAutomata extends RegularLanguage{
 			HashMap<Character, State> stateTransition = transitions.get(st);
 			while(itSymbol.hasNext()) {
 				def += stateTransition.get(itSymbol.next()).name + "|"; 
+			}
+			if(st.isFinal) {
+				def += "*";
 			}
 			def += "\n";
 		}
@@ -69,13 +71,8 @@ public class FiniteAutomata extends RegularLanguage{
 	}
 	
 	public void addInitialState(State ini) {
-		//if (initialState == null) {
-		//	initialState = ini;
-		//} else {
-			//states.add(initialState);
-			initialState = ini;
-			addState(ini);
-		//}
+		initialState = ini;
+		addState(ini);
 	}
 	
 	public void addState(State state) {
@@ -96,6 +93,28 @@ public class FiniteAutomata extends RegularLanguage{
 		HashMap<Character, State> transition = transitions.get(out);
 		transition.put(symbol, in);
 		return true;
+	}
+	
+	public boolean checkSentence(String str) {
+		if(!str.matches("[a-z0-9\\&]+")) {
+			return false;
+		}
+		State current = initialState;
+		if(str.equals("&")) {
+			return initialState.isFinal;
+		}
+		for (int i = 0; i < str.length(); i++) {
+			char c = str.charAt(i);
+			if (!alphabet.contains(c)) {
+				return false;
+			}
+			HashMap<Character, State> stateTransitions = transitions.get(current);
+			current = stateTransitions.get(c);
+			if (current == errorState) {
+				return false;
+			}
+		}
+		return current.isFinal;
 	}
 }
 

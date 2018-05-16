@@ -187,7 +187,7 @@ public class RegularExpression extends RegularLanguage{
 				break;
 			}
 		}
-		State q0 = new State("q0", isFinal);
+		State q0 = new State("q0", isFinal, 0);
 		composition.put(firstNodes, q0);
 		fa.addInitialState(q0);
 		int j = 1;
@@ -200,7 +200,7 @@ public class RegularExpression extends RegularLanguage{
 				Set<Node> symbolComposition = unionSymbolsComposition.get(nodeSymbol);
 				State in = composition.get(symbolComposition);
 				if (in == null) {
-					in = new State("q" + j, false);
+					in = new State("q" + j, false, j);
 					j++;
 					fa.addState(in);
 					composition.put(symbolComposition, in); 
