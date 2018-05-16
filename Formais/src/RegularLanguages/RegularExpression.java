@@ -1,9 +1,11 @@
 package RegularLanguages;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
@@ -160,7 +162,6 @@ public class RegularExpression extends RegularLanguage{
 	
 	protected FiniteAutomata deSimone(){
 		Node root = buildTree(this.toPostOrder());
-		//printPreorder(root);
 		
 		createThreaded(root);
 		
@@ -174,22 +175,65 @@ public class RegularExpression extends RegularLanguage{
 		
 		FiniteAutomata fa = new FiniteAutomata(InputType.RG, alphabet);
 		
-		SortedSet<HashMap<Integer,Character>> composition = getComposition(root);
+		HashMap<Set<Node>,State> composition = new HashMap<Set<Node>,State>();
+		
+		Set<Node> firstNodes = goDown(root, new HashSet<Node>());
+		ArrayList<Set<Node>> nextNodes = new ArrayList<Set<Node>>();
+		nextNodes.add(firstNodes);
+		boolean isFinal = false;
+		for (Node nd : firstNodes) {
+			if (nd.data == '$') {
+				isFinal = true;
+				break;
+			}
+		}
+		State q0 = new State("q0", isFinal);
+		composition.put(firstNodes, q0);
+		fa.addInitialState(q0);
+		int j = 1;
+		for(int i = 0; i < nextNodes.size(); i++) {
+			Set<Node> stateComposition = nextNodes.get(i);
+			State out = composition.get(stateComposition);
+			HashMap<Character, Set<Node>> unionSymbolsComposition = new HashMap<Character, Set<Node>>();	
+			unionSymbolsComposition = getStateQiComposition(unionSymbolsComposition, stateComposition);
+			for (Character nodeSymbol : unionSymbolsComposition.keySet()) {
+				Set<Node> symbolComposition = unionSymbolsComposition.get(nodeSymbol);
+				State in = composition.get(symbolComposition);
+				if (in == null) {
+					in = new State("q" + j, false);
+					j++;
+					fa.addState(in);
+					composition.put(symbolComposition, in); 
+					nextNodes.add(symbolComposition);
+					for(Node nd : symbolComposition) {
+						if (nd.data == '$') { 
+							in.setFinal();
+							break;
+						}
+					}
+				}
+				fa.addTransition(out, nodeSymbol, in);
+			}
+		}
+		
 		
 		return fa;
 	}
 	
-	protected SortedSet<HashMap<Integer,Character>> getComposition(Node root){
-		SortedSet<HashMap<Integer,Character>> composition = new TreeSet<HashMap<Integer,Character>>();
-		Node current = root;
-		
-		Set<Node> firstNodes = goDown(current, new HashSet<Node>());
-		Set<Node> nextNodes = firstNodes;
-		
-		
-		
-		return composition;
+	public HashMap<Character, Set<Node>> getStateQiComposition (HashMap<Character, Set<Node>> unionSymbolsComposition, Set<Node> qiComposition) {
+		for (Node nd : qiComposition) {
+			if (nd.data != '$') { 
+				Set<Node> upComposition = goUp(nd, new HashSet<Node>()); 
+				Set<Node> symbolComposition = unionSymbolsComposition.get(nd.data);
+				if (symbolComposition != null) {
+					symbolComposition.addAll(upComposition);
+			} else { 
+				unionSymbolsComposition.put(nd.data, new HashSet<Node>(upComposition));
+		}
 	}
+}
+return unionSymbolsComposition;
+}
 	
 	protected Set<Node> goDown(Node current, HashSet<Node> visited){
 		
