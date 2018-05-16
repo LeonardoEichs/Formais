@@ -2,18 +2,19 @@ package RegularLanguages;
 
 import java.util.Comparator;
 import java.util.Objects;
-import java.util.SortedSet;
 import java.util.UUID;
 
 public class State implements Comparable<State> {
 	String name;
 	UUID id;
 	boolean isFinal;
+	int n;
 	
-	public State(String _name, boolean _isFinal) {
+	public State(String _name, boolean _isFinal, int _n) {
 		name = _name;
 		isFinal = _isFinal;
 		id = UUID.randomUUID();
+		n = _n;
 	}
 	
 	public void setFinal() {
@@ -41,5 +42,5 @@ public class State implements Comparable<State> {
 	}
 	
 	private static final Comparator<State> comparator = Comparator
-			.comparing((State s) -> s.id);
+			.comparingInt((State s) -> s.n);
 }

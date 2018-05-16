@@ -1,5 +1,6 @@
 package RegularLanguages;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Objects;
@@ -12,7 +13,8 @@ public class FiniteAutomata extends RegularLanguage{
 	private HashMap<State, HashMap<Character, State>> transitions;
 	private State initialState;
 	private State errorState;
-	private SortedSet<Character> alphabet; 
+	private SortedSet<Character> alphabet;
+	private SortedSet<String> enumN;
 	
 	public FiniteAutomata(InputType type, SortedSet<Character> _alphabet) {
 		super(type);
@@ -115,6 +117,26 @@ public class FiniteAutomata extends RegularLanguage{
 			}
 		}
 		return current.isFinal;
+	}
+	
+	public SortedSet<String> getEnumeration(int n){
+		enumN = new TreeSet<String>();
+		possibleStrings(n, "");
+		return enumN;
+	}
+	
+	public void possibleStrings(int maxLength, String curr) {
+		if(curr.length() == maxLength) {
+			if(checkSentence(curr)) {
+				enumN.add(curr);
+			}
+			return;
+		}
+		Iterator<Character> symbols = alphabet.iterator();
+		while(symbols.hasNext()) {
+			char c = symbols.next();
+			possibleStrings(maxLength, curr+c);
+		}
 	}
 }
 
