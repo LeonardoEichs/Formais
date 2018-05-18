@@ -244,11 +244,60 @@ public class RegularGrammar extends RegularLanguage{
 		
 	}
 	
+	private static HashMap<Character, HashSet<String>> deepCloneHashMap(HashMap<Character, HashSet<String>> hashmap) {
+		HashMap<Character, HashSet<String>> deepClone = new HashMap<Character, HashSet<String>>();
+		   
+		for (Map.Entry<Character, HashSet<String>> entry : hashmap.entrySet()){
+	        deepClone.put(entry.getKey(),
+	           new HashSet<String>(entry.getValue()));
+	    }
+		
+		return deepClone;
+
+	}
+	
+	private static RegularGrammar renameStates(RegularGrammar rg, char initialNew) {
+		char initial_r = 0;
+		
+		HashMap<Character, Character> vn_r = new HashMap<Character, Character>();
+
+		HashMap<Character, HashSet<String>> new_prod = new HashMap<Character, HashSet<String>>();
+		HashMap<Character, HashSet<String>> copy = deepCloneHashMap(rg.productions);
+
+
+		char alphabet = initialNew;
+		
+
+		for (char p : rg.vn) {
+			if(p == rg.s)
+				initial_r = alphabet;
+			for(char p2 : rg.vn) {				
+				for(String s : copy.get(p2)) {
+					if(s.indexOf(p) >= 0) {
+						rg.productions.get(p2).remove(s);
+						rg.productions.get(p2).add(s.replace(p, alphabet));
+					}
+				}
+			}
+			vn_r.put(p, alphabet);
+			alphabet++;
+		}
+		for(char p : vn_r.keySet()) {
+			new_prod.put(vn_r.get(p), rg.productions.remove(p));
+		}
+		
+		RegularGrammar new_rg = isValidRG(mapToInput(new_prod, initial_r));
+		
+		return new_rg;
+	}
+	
 	public RegularGrammar union(RegularGrammar rg2) {
 		
+		RegularGrammar new_this = renameStates(this, 'B');
+		System.out.println(new_this.productions);
+		
+		/*
 		HashSet<String> prodList = new HashSet<String>();
-		HashSet<String> prodList_Original = new HashSet<String>();
-
 
 		char initial_r1 = 0;
 		char initial_r2 = 0;
@@ -256,24 +305,51 @@ public class RegularGrammar extends RegularLanguage{
 		HashMap<Character, Character> vn_r1 = new HashMap<Character, Character>();
 		HashMap<Character, Character> vn_r2 = new HashMap<Character, Character>();
 
-		HashMap<Character, HashSet<String>> prodr1 = (HashMap<Character, HashSet<String>>) this.productions.clone();
+		HashMap<Character, HashSet<String>> prodr1 = new HashMap<Character, HashSet<String>>();
+	    
+		for (Map.Entry<Character, HashSet<String>> entry : this.productions.entrySet()){
+			prodr1.put(entry.getKey(),
+	           new HashSet<String>(entry.getValue()));
+	    }
+		
 		HashMap<Character, HashSet<String>> prodr1_2 = new HashMap<Character, HashSet<String>>();
 
-		HashMap<Character, HashSet<String>> prodr2 = (HashMap<Character, HashSet<String>>) rg2.productions.clone();
+		HashMap<Character, HashSet<String>> prodr2 = new HashMap<Character, HashSet<String>>();
+	    
+		for (Map.Entry<Character, HashSet<String>> entry : rg2.productions.entrySet()){
+	    	prodr2.put(entry.getKey(),
+	           new HashSet<String>(entry.getValue()));
+		}
+		
 		HashMap<Character, HashSet<String>> prodr2_2 = new HashMap<Character, HashSet<String>>();
+		
+		HashMap<Character, HashSet<String>> copy = new HashMap<Character, HashSet<String>>();
+	    for (Map.Entry<Character, HashSet<String>> entry : this.productions.entrySet()){
+	        copy.put(entry.getKey(),
+	           new HashSet<String>(entry.getValue()));
+	    }
 
+		HashMap<Character, HashSet<String>> copy2 = new HashMap<Character, HashSet<String>>();
+	    for (Map.Entry<Character, HashSet<String>> entry : rg2.productions.entrySet()){
+	        copy2.put(entry.getKey(),
+	           new HashSet<String>(entry.getValue()));
+	    }
+		
 		HashMap<Character, HashSet<String>> prodrUnion = new HashMap<Character, HashSet<String>>();
 		
 		char alphabet = 'B';
+
 		for (char p : this.vn) {
 			if(p == this.s)
 				initial_r1 = alphabet;
 			for(char p2 : this.vn) {
-				prodList = new HashSet<String>();
-				for(String s : prodr1.get(p2)) {
-					prodList.add(s.replace(p, alphabet));
+				for(String s : copy.get(p2)) {
+					if(s.indexOf(p) >= 0) {
+						prodr1.get(p2).remove(s);
+						prodr1.get(p2).add(s.replace(p, alphabet));
+
+					}
 				}
-				prodr1.replace(p2, prodList);
 			}
 			vn_r1.put(p, alphabet);
 			alphabet++;
@@ -282,24 +358,21 @@ public class RegularGrammar extends RegularLanguage{
 			prodr1_2.put(vn_r1.get(p), prodr1.remove(p));
 		}
 		
-		System.out.println(prodr2);
 		for (char p : rg2.vn) {
 			if(p == rg2.s)
 				initial_r2 = alphabet;
 			for(char p2 : rg2.vn) {
-				prodList = new HashSet<String>();
-				
-				for(String s : prodr2.get(p2)) {
-					prodList.add(s.replace(p, alphabet)); //Cuidar um erro replace
-					System.out.println("	" + prodList);
+				for(String s : copy2.get(p2)) {
+					if(s.indexOf(p) >= 0) {
+						prodr2.get(p2).remove(s);
+						prodr2.get(p2).add(s.replace(p, alphabet));
+
+					}
 				}
-				prodr2.replace(p2, prodList);
 			}
 			vn_r2.put(p, alphabet);
 			alphabet++;
 		}
-		System.out.println(vn_r2);
-		System.out.println(prodr2);
 		for(char p : vn_r2.keySet()) {
 			prodr2_2.put(vn_r2.get(p), prodr2.remove(p));
 		}
@@ -320,8 +393,9 @@ public class RegularGrammar extends RegularLanguage{
 		prodrUnion.putAll(prodr2_2);
 
 		RegularGrammar rg = isValidRG(mapToInput(prodrUnion, 'A'));
-		
-		return rg;
+		*/
+		//return rg;
+		return null;
 	}
 	
 	public RegularGrammar concatenation(RegularGrammar rg2) {
@@ -334,45 +408,73 @@ public class RegularGrammar extends RegularLanguage{
 		HashMap<Character, Character> vn_r1 = new HashMap<Character, Character>();
 		HashMap<Character, Character> vn_r2 = new HashMap<Character, Character>();
 
-		HashMap<Character, HashSet<String>> prodr1 = (HashMap<Character, HashSet<String>>) this.productions.clone();
+		HashMap<Character, HashSet<String>> prodr1 = new HashMap<Character, HashSet<String>>();
+	    
+		for (Map.Entry<Character, HashSet<String>> entry : this.productions.entrySet()){
+			prodr1.put(entry.getKey(),
+	           new HashSet<String>(entry.getValue()));
+	    }
+		
 		HashMap<Character, HashSet<String>> prodr1_2 = new HashMap<Character, HashSet<String>>();
 
-		HashMap<Character, HashSet<String>> prodr2 = (HashMap<Character, HashSet<String>>) rg2.productions.clone();
+		HashMap<Character, HashSet<String>> prodr2 = new HashMap<Character, HashSet<String>>();
+	    
+		for (Map.Entry<Character, HashSet<String>> entry : rg2.productions.entrySet()){
+	    	prodr2.put(entry.getKey(),
+	           new HashSet<String>(entry.getValue()));
+		}
+		
 		HashMap<Character, HashSet<String>> prodr2_2 = new HashMap<Character, HashSet<String>>();
+		
+		HashMap<Character, HashSet<String>> copy = new HashMap<Character, HashSet<String>>();
+	    for (Map.Entry<Character, HashSet<String>> entry : this.productions.entrySet()){
+	        copy.put(entry.getKey(),
+	           new HashSet<String>(entry.getValue()));
+	    }
+
+		HashMap<Character, HashSet<String>> copy2 = new HashMap<Character, HashSet<String>>();
+	    for (Map.Entry<Character, HashSet<String>> entry : rg2.productions.entrySet()){
+	        copy2.put(entry.getKey(),
+	           new HashSet<String>(entry.getValue()));
+	    }
+
 		
 		boolean empty = false;
 		char alphabet = 'A';
 		if(prodr1.get(this.s).toString().contains("&")) {
 			alphabet = 'B';
 			empty = true;
-		}	
+		}
 
 		for (char p : this.vn) {
 			if(p == this.s)
 				initial_r1 = alphabet;
 			for(char p2 : this.vn) {
-				prodList = new HashSet<String>();
-				for(String s : prodr1.get(p2)) {
-					prodList.add(s.replace(p, alphabet));
+				for(String s : copy.get(p2)) {
+					if(s.indexOf(p) >= 0) {
+						prodr1.get(p2).remove(s);
+						prodr1.get(p2).add(s.replace(p, alphabet));
+					}
 				}
-				prodr1.replace(p2, prodList);
 			}
 			vn_r1.put(p, alphabet);
 			alphabet++;
 		}
 		for(char p : vn_r1.keySet()) {
 			prodr1_2.put(vn_r1.get(p), prodr1.remove(p));
-		}
+		}		
 		
 		for (char p : rg2.vn) {
 			if(p == rg2.s)
 				initial_r2 = alphabet;
 			for(char p2 : rg2.vn) {
-				prodList = new HashSet<String>();
-				for(String s : prodr2.get(p2)) {
-					prodList.add(s.replace(p, alphabet));
+				for(String s : copy2.get(p2)) {
+					if(s.indexOf(p) >= 0) {
+						prodr2.get(p2).remove(s);
+						prodr2.get(p2).add(s.replace(p, alphabet));
+
+					}
 				}
-				prodr2.replace(p2, prodList);
 			}
 			vn_r2.put(p, alphabet);
 			alphabet++;
@@ -385,9 +487,9 @@ public class RegularGrammar extends RegularLanguage{
 			prodr1_2.get(initial_r1).remove("&");
 		if(prodr2_2.get(initial_r2).toString().contains("&"))
 			prodr2_2.get(initial_r2).remove("&");
-
+		
 		for (char p : prodr1_2.keySet()) {
-			prodList = new HashSet<String>();
+			prodList = new HashSet<String>(); 
 			for(String s : prodr1_2.get(p)) {
 				if(s.length() == 1) {
 					s = s + initial_r2;
@@ -396,7 +498,7 @@ public class RegularGrammar extends RegularLanguage{
 			}
 			prodr1_2.replace(p, prodList);
 		}
-		
+
 		prodr1_2.putAll(prodr2_2);
 		
 		if(empty) {
@@ -416,9 +518,58 @@ public class RegularGrammar extends RegularLanguage{
 	
 	public RegularGrammar closurePlus() {
 		
+		char initial_r1 = 0;
+
+		HashMap<Character, Character> vn_r1 = new HashMap<Character, Character>();
+
+		HashMap<Character, HashSet<String>> prodr1 = new HashMap<Character, HashSet<String>>();
+	    
+		for (Map.Entry<Character, HashSet<String>> entry : this.productions.entrySet()){
+			prodr1.put(entry.getKey(),
+	           new HashSet<String>(entry.getValue()));
+	    }
+		
+		HashMap<Character, HashSet<String>> prodr1_2 = new HashMap<Character, HashSet<String>>();
+		
+		HashMap<Character, HashSet<String>> copy = new HashMap<Character, HashSet<String>>();
+	    for (Map.Entry<Character, HashSet<String>> entry : this.productions.entrySet()){
+	        copy.put(entry.getKey(),
+	           new HashSet<String>(entry.getValue()));
+	    }
+		
+
+		char alphabet = 'A';
+
+		for (char p : this.vn) {
+			if(p == this.s)
+				initial_r1 = alphabet;
+			for(char p2 : this.vn) {
+				for(String s : copy.get(p2)) {
+					if(s.indexOf(p) >= 0) {
+						prodr1.get(p2).remove(s);
+						prodr1.get(p2).add(s.replace(p, alphabet));
+
+					}
+				}
+			}
+			vn_r1.put(p, alphabet);
+			alphabet++;
+		}
+
+		for(char p : vn_r1.keySet()) {
+			prodr1_2.put(vn_r1.get(p), prodr1.remove(p));
+		}
+
+		System.out.println(prodr1_2);
+
+		
 		HashSet<String> prodList = new HashSet<String>();
 		
-		HashMap<Character, HashSet<String>> clone = (HashMap<Character, HashSet<String>>) this.productions.clone();
+		HashMap<Character, HashSet<String>> clone = new HashMap<Character, HashSet<String>>();
+	    for (Map.Entry<Character, HashSet<String>> entry : this.productions.entrySet()){
+	    	clone.put(entry.getKey(),
+	           new HashSet<String>(entry.getValue()));
+	    }
 		
 		boolean empty = false;
 		if(clone.get(this.s).toString().contains("&")) {
@@ -447,34 +598,89 @@ public class RegularGrammar extends RegularLanguage{
 			}
 			clone.put(this.s, prodList);
 		}
+		
+		
+		System.out.println(clone);
 
+
+		
 		RegularGrammar rg = isValidRG(mapToInput(clone, this.s));
+		
 		
 		return rg;
 	}
 	
 	public RegularGrammar closureKleene() {
 		
-		HashMap<Character, HashSet<String>> clone = (HashMap<Character, HashSet<String>>) this.closurePlus().productions.clone();
-		if(clone.get(this.s).toString().contains("&")) {
-			return isValidRG(mapToInput(clone, this.s));
+		HashMap<Character, HashSet<String>> cloneClosurePlus = new HashMap<Character, HashSet<String>>();
+	    for (Map.Entry<Character, HashSet<String>> entry : this.closurePlus().productions.entrySet()){
+	    	cloneClosurePlus.put(entry.getKey(),
+	           new HashSet<String>(entry.getValue()));
+	    }
+	    
+	    System.out.println(cloneClosurePlus);
+	    System.out.println(this.s);
+
+	    
+		char initial_r1 = 0;
+		
+		HashMap<Character, Character> vn_r1 = new HashMap<Character, Character>();
+
+		HashMap<Character, HashSet<String>> prodr1 = new HashMap<Character, HashSet<String>>();
+	    
+		for (Map.Entry<Character, HashSet<String>> entry : cloneClosurePlus.entrySet()){
+			prodr1.put(entry.getKey(),
+	           new HashSet<String>(entry.getValue()));
+	    }
+		
+		HashMap<Character, HashSet<String>> prodr1_2 = new HashMap<Character, HashSet<String>>();
+		
+		HashMap<Character, HashSet<String>> copy = new HashMap<Character, HashSet<String>>();
+	    for (Map.Entry<Character, HashSet<String>> entry : cloneClosurePlus.entrySet()){
+	        copy.put(entry.getKey(),
+	           new HashSet<String>(entry.getValue()));
+	    }
+		
+
+		char alphabet = 'B';
+
+		for (char p : this.vn) {
+			if(p == this.s)
+				initial_r1 = alphabet;
+			for(char p2 : this.vn) {
+				for(String s : copy.get(p2)) {
+					if(s.indexOf(p) >= 0) {
+						prodr1.get(p2).remove(s);
+						prodr1.get(p2).add(s.replace(p, alphabet));
+
+					}
+				}
+			}
+			vn_r1.put(p, alphabet);
+			alphabet++;
 		}
 
+		for(char p : vn_r1.keySet()) {
+			prodr1_2.put(vn_r1.get(p), prodr1.remove(p));
+		}
+		
+		System.out.println(prodr1_2);
+
+	    
 		HashSet<String> prodList = new HashSet<String>();
 		prodList.add("&");
-		for(String s : clone.get(this.s)) {
+		for(String s : prodr1_2.get(vn_r1.get(this.s))) {
 			prodList.add(s);
 		}
+		prodr1_2.put('A', prodList);
+		
+		System.out.println(prodr1_2);
 
-		/*
-		 *  Vai ter que renomear os estado
-		 *  Adicionar um novo estado inicial copiando os valores e colocando &
-		 */
 		
-		clone.put(this.s, prodList);
-		RegularGrammar rg = isValidRG(mapToInput(clone, this.s));
+		//RegularGrammar rg = isValidRG(mapToInput(clone, this.s));
 		
-		return rg;
+		//return rg;
+	    return null;
 	}
 
 
