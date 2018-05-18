@@ -27,13 +27,51 @@ public class FAMinimizer {
 		newStates = checkReacheble(alphabet, transitions, initial);
 		transitions = removeTransitions(alphabet, newStates, transitions);
 		
-		FiniteAutomata minAF = checkEquivalence(alphabet, newStates, transitions, initial);
-		
+		HashMap<State, ArrayList<State>> classes = checkEquivalence(alphabet, newStates, transitions, initial);
+		FiniteAutomata minAF = buildAutomata(alphabet, classes, transitions, initial);
 		
 		return minAF;
 	}
 	
-	public FiniteAutomata checkEquivalence(SortedSet<Character> alphabet, SortedSet<State> states, HashMap<State, HashMap<Character, State>> transitions, State initial) {
+	public FiniteAutomata buildAutomata(SortedSet<Character> alphabet, HashMap<State, ArrayList<State>> classes, HashMap<State, HashMap<Character, State>> transitions, State initial) {
+		FiniteAutomata fa = new FiniteAutomata(InputType.RG, alphabet);
+		SortedSet<State> states = new TreeSet<State>();
+		Set<State> keys = classes.keySet();
+		Iterator<State> it = keys.iterator();
+		while(it.hasNext()) {
+			State current = it.next();
+			if(current.name == "$") {
+				continue;
+			}
+			states.add(current);
+			fa.addState(current);
+		}
+		it = states.iterator();
+		while(it.hasNext()) {
+			State current = it.next();
+			Iterator<Character> itS = alphabet.iterator();
+			while(itS.hasNext()) {
+				char c = itS.next();
+				State currentTransition = transitions.get(current).get(c);
+				Iterator<State> itC = states.iterator();
+				while(itC.hasNext()) {
+					State temp = itC.next();
+					ArrayList<State> currentGroup = classes.get(temp);
+					if(checkGroup(currentTransition, currentGroup)) {
+						fa.addTransition(current, c, temp);
+						break;
+					}
+					
+				}
+				
+			}
+			
+		}
+		
+		return fa;
+	}
+	
+	public HashMap<State, ArrayList<State>> checkEquivalence(SortedSet<Character> alphabet, SortedSet<State> states, HashMap<State, HashMap<Character, State>> transitions, State initial) {
 		
 		ArrayList<State> f = new ArrayList<State>();
 		ArrayList<State> k = new ArrayList<State>();
@@ -49,15 +87,15 @@ public class FAMinimizer {
 			}
 		}
 		
-		/**State err = new State("$", false, -1);
+		///// TODO tratar indefinições 
+		State err = new State("$", false, -1);
 		k.add(err);
-		HashMap<Character, State> errTransition = transitions.get(initial);
-		Set<Character> chars = errTransition.keySet();
-		Iterator<Character> itS = chars.iterator();
+		HashMap<Character, State> errTransition = new HashMap<Character, State>();
+		Iterator<Character> itS = alphabet.iterator();
 		while(itS.hasNext()) {
 			errTransition.put(itS.next(), err);
 		}
-		transitions.put(err, errTransition);*/
+		transitions.put(err, errTransition);
 		if (!f.isEmpty()) {
 			State fq0 = f.get(0);
 			classes.put(fq0, f);
@@ -117,13 +155,14 @@ public class FAMinimizer {
 			}
 			classes = newClasses;
 		}
-		Set<State> keys = classes.keySet();
+		////// TEST ////////
+		/*Set<State> keys = classes.keySet();
 		it = keys.iterator();
 		while(it.hasNext()) {
 			System.out.println(it.next().name);
-		}
+		}*/
 		
-		return null;
+		return classes;
 	}
 	
 	public boolean isEquivalent(State base, State current, HashMap<State, HashMap<Character, State>> transitions, HashMap<State, ArrayList<State>> classes) {
