@@ -49,7 +49,7 @@ public class FAMinimizer {
 			}
 		}
 		
-		State err = new State("$", false, -1);
+		/**State err = new State("$", false, -1);
 		k.add(err);
 		HashMap<Character, State> errTransition = transitions.get(initial);
 		Set<Character> chars = errTransition.keySet();
@@ -57,7 +57,7 @@ public class FAMinimizer {
 		while(itS.hasNext()) {
 			errTransition.put(itS.next(), err);
 		}
-		transitions.put(err, errTransition);
+		transitions.put(err, errTransition);*/
 		if (!f.isEmpty()) {
 			State fq0 = f.get(0);
 			classes.put(fq0, f);
@@ -80,8 +80,12 @@ public class FAMinimizer {
 				newClasses.put(base, newGroup);
 				for(int j = 0; j < currentGroup.size(); j++) {
 					State current = currentGroup.get(j);
+					if(base == current) {
+						continue;
+					}
 					if(isEquivalent(base, current, transitions, classes)) {
 						newGroup.add(current);
+						newClasses.remove(base);
 						newClasses.put(base, newGroup);
 					} else {
 						boolean found = false;
@@ -95,8 +99,10 @@ public class FAMinimizer {
 							if(isEquivalent(otherBase, current, transitions, classes)) {
 								ArrayList<State> temp = newClasses.get(otherBase);
 								temp.add(current);
+								newClasses.remove(otherBase);
 								newClasses.put(otherBase,temp);
 								found = true;
+								ctrl = false;
 								break;
 							}
 						}
@@ -104,14 +110,11 @@ public class FAMinimizer {
 							ArrayList<State> temp = new ArrayList<State>();
 							temp.add(current);
 							newClasses.put(current, temp);
+							ctrl = false;
 						}
 					}
 				}
 			}
-			
-			//if(newClasses.equals(classes)) {
-				ctrl = false;
-			//}
 			classes = newClasses;
 		}
 		Set<State> keys = classes.keySet();
@@ -136,15 +139,24 @@ public class FAMinimizer {
 			State cState = cTransitions.get(c);
 			for(int i = 0; i < classList.size(); i++) {
 				ArrayList<State> temp = classList.get(i);
-				if (temp.contains(bState) && temp.contains(cState)) {
+				if (checkGroup(bState, temp) && checkGroup(cState, temp)) {
 					break;
-				} else if((temp.contains(bState) && !temp.contains(cState)) || (!temp.contains(bState) && temp.contains(cState))) {
+				} else if((checkGroup(bState, temp) && !checkGroup(cState, temp)) || (!checkGroup(bState, temp) && checkGroup(cState, temp))) {
 					return false;
 				}
 			}
 			
 		}
 		return true;
+	}
+	
+	public boolean checkGroup(State state, ArrayList<State> group) {
+		for(int i = 0; i < group.size(); i++) {
+			if(state.name.equals(group.get(i).name)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public SortedSet<State> checkReacheble(SortedSet<Character> alphabet, HashMap<State, HashMap<Character, State>> transitions, State initial) {
