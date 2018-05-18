@@ -106,7 +106,7 @@ public class FAMinimizer {
 		}
 		boolean ctrl = true;
 		while(ctrl) {
-			ctrl = true;
+			ctrl = false;
 			Set<State> keys = classes.keySet();
 			HashMap<State, ArrayList<State>> newClasses = new HashMap<State, ArrayList<State>>();
 			it = keys.iterator();
@@ -142,7 +142,7 @@ public class FAMinimizer {
 								newGroups.remove(otherBase);
 								newGroups.put(otherBase,temp);
 								found = true;
-								ctrl = false;
+								ctrl = true;
 								break;
 							}
 						}
@@ -150,7 +150,7 @@ public class FAMinimizer {
 							ArrayList<State> temp = new ArrayList<State>();
 							temp.add(current);
 							newGroups.put(current, temp);
-							ctrl = false;
+							ctrl = true;
 						}
 					}
 				}
@@ -158,13 +158,6 @@ public class FAMinimizer {
 			}
 			classes = newClasses;
 		}
-		////// TEST ////////
-		/*Set<State> keys = classes.keySet();
-		it = keys.iterator();
-		while(it.hasNext()) {
-			System.out.println(it.next().name);
-		}*/
-		
 		return classes;
 	}
 	
