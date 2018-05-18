@@ -1,9 +1,7 @@
 package RegularLanguages;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -22,6 +20,17 @@ public class FiniteAutomata extends RegularLanguage{
 		transitions = new HashMap<State, HashMap<Character, State>>();
 		errorState = new State("$", false, -1);
 		states = new TreeSet<State>();
+		
+	}
+	
+	public FiniteAutomata(InputType type, SortedSet<Character> _alphabet, SortedSet<State> _states, HashMap<State, 
+			HashMap<Character, State>> _transitions, State _initialState) {
+		super(type);
+		alphabet = _alphabet;
+		transitions = _transitions;
+		errorState = new State("$", false, -1);
+		states = _states;
+		initialState = _initialState;
 		
 	}
 
@@ -75,6 +84,22 @@ public class FiniteAutomata extends RegularLanguage{
 	public void addInitialState(State ini) {
 		initialState = ini;
 		addState(ini);
+	}
+	
+	public State getInitial() {
+		return initialState;
+	}
+	
+	public HashMap<State, HashMap<Character, State>> getTransitions(){
+		return transitions;
+	}
+	
+	public SortedSet<Character> getAlphabet() {
+		return alphabet;
+	}
+	
+	public SortedSet<State> getStates(){
+		return states;
 	}
 	
 	public void addState(State state) {

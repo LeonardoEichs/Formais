@@ -20,6 +20,10 @@ public class State implements Comparable<State> {
 	public void setFinal() {
 		isFinal = true;
 	}
+	
+	public String getName() {
+		return name;
+	}
 	@Override
 	public boolean equals(Object obj) {
 		if(obj == null || !Node.class.isAssignableFrom(obj.getClass())) {
