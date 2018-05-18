@@ -114,8 +114,10 @@ public class FAMinimizer {
 				State base = it.next();
 				ArrayList<State> currentGroup = classes.get(base);
 				ArrayList<State> newGroup = new ArrayList<State>();
+				HashMap<State, ArrayList<State>> newGroups = new HashMap<State, ArrayList<State>>();
 				newGroup.add(base);
-				newClasses.put(base, newGroup);
+				//newClasses.put(base, newGroup);
+				newGroups.put(base, newGroup);
 				for(int j = 0; j < currentGroup.size(); j++) {
 					State current = currentGroup.get(j);
 					if(base == current) {
@@ -123,11 +125,11 @@ public class FAMinimizer {
 					}
 					if(isEquivalent(base, current, transitions, classes)) {
 						newGroup.add(current);
-						newClasses.remove(base);
-						newClasses.put(base, newGroup);
+						newGroups.remove(base);
+						newGroups.put(base, newGroup);
 					} else {
 						boolean found = false;
-						Set<State> newKeys = newClasses.keySet();
+						Set<State> newKeys = newGroups.keySet();
 						Iterator<State> it2 = newKeys.iterator();
 						while(it2.hasNext()) {
 							State otherBase = it2.next();
@@ -135,10 +137,10 @@ public class FAMinimizer {
 								continue;
 							}
 							if(isEquivalent(otherBase, current, transitions, classes)) {
-								ArrayList<State> temp = newClasses.get(otherBase);
+								ArrayList<State> temp = newGroups.get(otherBase);
 								temp.add(current);
-								newClasses.remove(otherBase);
-								newClasses.put(otherBase,temp);
+								newGroups.remove(otherBase);
+								newGroups.put(otherBase,temp);
 								found = true;
 								ctrl = false;
 								break;
@@ -147,11 +149,12 @@ public class FAMinimizer {
 						if(!found) {
 							ArrayList<State> temp = new ArrayList<State>();
 							temp.add(current);
-							newClasses.put(current, temp);
+							newGroups.put(current, temp);
 							ctrl = false;
 						}
 					}
 				}
+				newClasses.putAll(newGroups);
 			}
 			classes = newClasses;
 		}
