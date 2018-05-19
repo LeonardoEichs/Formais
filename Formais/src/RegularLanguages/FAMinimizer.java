@@ -16,7 +16,7 @@ public class FAMinimizer {
 	}
 	
 	public FiniteAutomata minimize(FiniteAutomata fa) {
-		HashMap<State, HashMap<Character, State>> transitions = fa.getTransitions();
+		HashMap<State, HashMap<Character, ArrayList<State>>> transitions = fa.getTransitions();
 		SortedSet<Character> alphabet = fa.getAlphabet();
 		SortedSet<State> states = fa.getStates();
 		State initial = fa.getInitial();
@@ -32,7 +32,7 @@ public class FAMinimizer {
 		return minAF;
 	}
 	
-	public FiniteAutomata buildAutomata(SortedSet<Character> alphabet, HashMap<State, ArrayList<State>> classes, HashMap<State, HashMap<Character, State>> transitions, State initial) {
+	public FiniteAutomata buildAutomata(SortedSet<Character> alphabet, HashMap<State, ArrayList<State>> classes, HashMap<State, HashMap<Character, ArrayList<State>>> transitions, State initial) {
 		FiniteAutomata fa = new FiniteAutomata(alphabet);
 		SortedSet<State> states = new TreeSet<State>();
 		Set<State> keys = classes.keySet();
@@ -51,7 +51,7 @@ public class FAMinimizer {
 			Iterator<Character> itS = alphabet.iterator();
 			while(itS.hasNext()) {
 				char c = itS.next();
-				State currentTransition = transitions.get(current).get(c);
+				State currentTransition = transitions.get(current).get(c).get(0);
 				Iterator<State> itC = states.iterator();
 				while(itC.hasNext()) {
 					State temp = itC.next();
@@ -70,7 +70,7 @@ public class FAMinimizer {
 		return fa;
 	}
 	
-	public HashMap<State, ArrayList<State>> checkEquivalence(SortedSet<Character> alphabet, SortedSet<State> states, HashMap<State, HashMap<Character, State>> transitions, State initial) {
+	public HashMap<State, ArrayList<State>> checkEquivalence(SortedSet<Character> alphabet, SortedSet<State> states, HashMap<State, HashMap<Character, ArrayList<State>>> transitions, State initial) {
 		
 		ArrayList<State> f = new ArrayList<State>();
 		ArrayList<State> k = new ArrayList<State>();
@@ -89,10 +89,12 @@ public class FAMinimizer {
 		///// TODO tratar indefinições 
 		State err = new State("$", false, -1);
 		k.add(err);
-		HashMap<Character, State> errTransition = new HashMap<Character, State>();
+		HashMap<Character, ArrayList<State>> errTransition = new HashMap<Character, ArrayList<State>>();
 		Iterator<Character> itS = alphabet.iterator();
 		while(itS.hasNext()) {
-			errTransition.put(itS.next(), err);
+			ArrayList<State> t = new ArrayList<State>();
+			t.add(err);
+			errTransition.put(itS.next(), t);
 		}
 		transitions.put(err, errTransition);
 		if (!f.isEmpty()) {
@@ -160,17 +162,17 @@ public class FAMinimizer {
 		return classes;
 	}
 	
-	public boolean isEquivalent(State base, State current, HashMap<State, HashMap<Character, State>> transitions, HashMap<State, ArrayList<State>> classes) {
+	public boolean isEquivalent(State base, State current, HashMap<State, HashMap<Character, ArrayList<State>>> transitions, HashMap<State, ArrayList<State>> classes) {
 		Set<Character> alphabet = transitions.get(base).keySet();
-		HashMap<Character, State> bTransitions = transitions.get(base);
-		HashMap<Character, State> cTransitions = transitions.get(current);
+		HashMap<Character, ArrayList<State>> bTransitions = transitions.get(base);
+		HashMap<Character, ArrayList<State>> cTransitions = transitions.get(current);
 		Iterator<Character> it = alphabet.iterator();
 		ArrayList<ArrayList<State>> classList = new ArrayList<ArrayList<State>>();
 		classList.addAll(classes.values());
 		while(it.hasNext()) {
 			char c = it.next();
-			State bState = bTransitions.get(c);
-			State cState = cTransitions.get(c);
+			State bState = bTransitions.get(c).get(0);
+			State cState = cTransitions.get(c).get(0);
 			for(int i = 0; i < classList.size(); i++) {
 				ArrayList<State> temp = classList.get(i);
 				if (checkGroup(bState, temp) && checkGroup(cState, temp)) {
@@ -193,17 +195,17 @@ public class FAMinimizer {
 		return false;
 	}
 	
-	public SortedSet<State> checkReacheble(SortedSet<Character> alphabet, HashMap<State, HashMap<Character, State>> transitions, State initial) {
+	public SortedSet<State> checkReacheble(SortedSet<Character> alphabet, HashMap<State, HashMap<Character, ArrayList<State>>> transitions, State initial) {
 		SortedSet<State> rchStates = new TreeSet<State>();
 		State current = initial;
 		rchStates.add(current);
 		
-		HashMap<Character, State> currentTransitions = transitions.get(current);
+		HashMap<Character, ArrayList<State>> currentTransitions = transitions.get(current);
 		Iterator<Character> symbols = alphabet.iterator();
 		List<State> pendentStates = new ArrayList<State>();
 		while(symbols.hasNext()) {
 			char c = symbols.next();
-			State in = currentTransitions.get(c);
+			State in = currentTransitions.get(c).get(0);
 			if(in.name == "$") {
 				continue;
 			}
@@ -219,7 +221,7 @@ public class FAMinimizer {
 			symbols = alphabet.iterator();
 			while(symbols.hasNext()) {
 				char c = symbols.next();
-				State in = currentTransitions.get(c);
+				State in = currentTransitions.get(c).get(0);
 				if(in.name == "$") {
 					continue;
 				}
@@ -232,13 +234,13 @@ public class FAMinimizer {
 		return rchStates;
 	}
 	
-	public SortedSet<State> checkDeadStates(SortedSet<Character> alphabet, SortedSet<State> states, HashMap<State, HashMap<Character, State>> transitions ){
+	public SortedSet<State> checkDeadStates(SortedSet<Character> alphabet, SortedSet<State> states, HashMap<State, HashMap<Character, ArrayList<State>>> transitions ){
 		SortedSet<State> alive = new TreeSet<State>();
 		State current;
 		
 		Iterator<Character> symbols = alphabet.iterator();
 		List<State> pendentStates = new ArrayList<State>();
-		HashMap<Character, State> currentTransitions;
+		HashMap<Character, ArrayList<State>> currentTransitions;
 		
 		Iterator<State> it = states.iterator();
 		while(it.hasNext()) {
@@ -258,7 +260,7 @@ public class FAMinimizer {
 				symbols = alphabet.iterator();
 				while(symbols.hasNext()) {
 					char c = symbols.next();
-					State in = currentTransitions.get(c);
+					State in = currentTransitions.get(c).get(0);
 					if (alive.contains(in)) {
 						alive.add(current);
 						pendentStates.remove(i);
@@ -271,22 +273,25 @@ public class FAMinimizer {
 		return alive;
 	}
 	
-	public HashMap<State, HashMap<Character, State>> removeTransitions(SortedSet<Character> alphabet, SortedSet<State> states, HashMap<State,
-		HashMap<Character, State>> transitions) {	
-		HashMap<State, HashMap<Character, State>> newTransitions = new HashMap<State, HashMap<Character, State>>();
+	public HashMap<State, HashMap<Character, ArrayList<State>>> removeTransitions(SortedSet<Character> alphabet, SortedSet<State> states, HashMap<State,
+		HashMap<Character, ArrayList<State>>> transitions) {	
+		HashMap<State, HashMap<Character, ArrayList<State>>> newTransitions = new HashMap<State, HashMap<Character, ArrayList<State>>>();
 		Iterator<State> it = states.iterator();
 		while(it.hasNext()) {
 			State current = it.next();
-			HashMap<Character, State> stateOldTransitions = transitions.get(current);
-			HashMap<Character, State> newStateTransitions = new HashMap<Character, State>();
+			HashMap<Character, ArrayList<State>> stateOldTransitions = transitions.get(current);
+			HashMap<Character, ArrayList<State>> newStateTransitions = new HashMap<Character, ArrayList<State>>();
 			Iterator<Character> symbols = alphabet.iterator();
 			while(symbols.hasNext()) {
 				char c = symbols.next();
-				State nxtState = stateOldTransitions.get(c);
+				State nxtState = stateOldTransitions.get(c).get(0);
+				ArrayList<State> t = new ArrayList<State>();
 				if(states.contains(nxtState)){
-					newStateTransitions.put(c, nxtState);
+					t.add(nxtState);
+					newStateTransitions.put(c, t);
 				} else {
-					newStateTransitions.put(c, new State("$", false, -1));				
+					t.add(new State("$", false, -1));
+					newStateTransitions.put(c, t);				
 				}
 			}
 			newTransitions.put(current, newStateTransitions);
