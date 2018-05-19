@@ -1,11 +1,14 @@
 package RegularLanguages;
 
+import java.awt.AlphaComposite;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.regex.Pattern;
 
 public class RegularGrammar extends RegularLanguage{
@@ -22,7 +25,7 @@ public class RegularGrammar extends RegularLanguage{
 		vt = new HashSet<Character>();
 		productions = new HashMap<String, HashSet<String>>();
 	}
-	
+		
 	private static boolean lexicalValidation(String inp) {
 		String formatted = inp.replaceAll("\\s+", "");
 		if(!formatted.matches("^[a-zA-Z0-9\\->|&']+"))
@@ -160,6 +163,10 @@ public class RegularGrammar extends RegularLanguage{
 		return s;
 	}
 	
+	public HashMap<String, HashSet<String>> getProductions() {
+		return productions;
+	}
+	
 	public Set<String> getProductions(String c) {
 		Set<String> prod = productions.get(c);
 		if(prod == null) {
@@ -201,10 +208,88 @@ public class RegularGrammar extends RegularLanguage{
 		return null;
 	}
 
+	private boolean isDeterministic() {
+		int n = 0;
+		for(String s : this.vn) {
+			for(Character s2 : this.vt) {
+				for(String prod : this.getProductions(s)) {
+					if(prod.length() == 1)
+						if(prod.equals(s2))
+							n++;
+					else {
+						if(prod.charAt(0) == s2)
+							n++;
+					}
+				}
+				if(n >= 2)
+					return true;
+				else
+					n = 0;
+			}
+		}
+		return false;
+	}
+		
+	public static RegularGrammar faToRG(FiniteAutomata fa) {
+		boolean finalState = true;
+		ArrayList<State> finals = new ArrayList<State>();
+		for(State state : fa.getStates()) {
+			finalState = true;
+			for(Character c : fa.getAlphabet()) {
+				for(State p : fa.getTransitions().get(state).get(c)) {
+					if(p.getName() != "$")
+						finalState = false;
+				}
+			}
+			if(finalState)				
+				finals.add(state);
+		}
+		
+		HashMap<String, HashSet<String>> new_productions = new HashMap<String, HashSet<String>>();
+		HashSet<String> prod_value = new HashSet<String>();
+		String new_state_name = "";
+		boolean notInFinal = true;
+		for(State state : fa.getStates()) {
+			notInFinal = true;
+			prod_value = new HashSet<String>();
+			for(Character c : fa.getAlphabet()) {
+				notInFinal = true;
+				for(State p : fa.getTransitions().get(state).get(c)) {
+					new_state_name = "";
+					notInFinal = true;
+					for(State s : finals) {
+						if(s.getName().toString().equals(p.getName().toString()))
+							notInFinal=false;
+					}
+					if((notInFinal) && p.getName() != "$"){
+						new_state_name = c + p.getName();
+						prod_value.add(new_state_name);
+
+					}
+					else if(p.getName() != "$"){
+						new_state_name = Character.toString(c);
+						prod_value.add(new_state_name);
+					}
+				}
+			}
+			notInFinal = true;
+			for(State s : finals) {
+				if(s.getName().toString().equals(state.getName().toString()))
+					notInFinal=false;
+			}
+			if(notInFinal) {
+				new_productions.put(state.getName(), prod_value);
+			}
+		}
+		RegularGrammar new_rg = isValidRG(mapToInput(new_productions, fa.getInitial().getName()));		
+		
+		return new_rg;
+	}
+	
 	@Override
 	public FiniteAutomata getFA() {
-		// TODO Auto-generated method stub
-		return null;
+		FiniteAutomata fa = FiniteAutomata.rgToFA(this);
+		return fa;
 	}
 	
 	private static String mapToInput(HashMap<String, HashSet<String>> new_prod, String string) {
@@ -499,7 +584,7 @@ public class RegularGrammar extends RegularLanguage{
 		return rg;
 	}
 	
-	public RegularGrammar closureKleene() {
+	public RegularGrammar closureStar() {
 		
 		RegularGrammar rg = this.closurePlus();
 		RegularGrammar new_rg = renameStates(rg, "B");

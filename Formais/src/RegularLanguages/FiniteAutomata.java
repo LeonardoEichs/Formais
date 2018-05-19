@@ -71,8 +71,8 @@ public class FiniteAutomata extends RegularLanguage{
 
 	@Override
 	public RegularGrammar getRG() {
-		// TODO Auto-generated method stub
-		return null;
+		RegularGrammar rg = RegularGrammar.faToRG(this);
+		return rg;
 	}
 
 	@Override
@@ -182,6 +182,47 @@ public class FiniteAutomata extends RegularLanguage{
 			char c = symbols.next();
 			possibleStrings(maxLength, curr+c);
 		}
+	}
+
+	public static FiniteAutomata rgToFA(RegularGrammar regularGrammar) {
+		HashMap<String, State> stringState = new HashMap<String, State>();
+		SortedSet<Character> _alphabet = new TreeSet<Character>();
+		for(char c : regularGrammar.getVt()) {
+			_alphabet.add(c);
+		}
+		
+		FiniteAutomata fa = new FiniteAutomata(_alphabet);
+		int i = 0;
+		boolean _isFinal;
+		for(String s : regularGrammar.getVn()) {
+			_isFinal = false;
+			for(String s2: regularGrammar.getProductions(s)) {
+				if(s2.length() == 1)
+					_isFinal = true;
+			}
+			stringState.put(s, new State(s, _isFinal, i++));
+			if(s.toString().equals(regularGrammar.getInitial().toString()))
+				fa.addInitialState(stringState.get(s));
+			else {
+				fa.addState(stringState.get(s));
+			}
+		}
+		
+		State Final = new State("Final", true, i);
+		fa.addState(Final);
+		
+		System.out.println(regularGrammar.getProductions());
+		for(String s : regularGrammar.getProductions().keySet()) {
+			for(String s2 : regularGrammar.getProductions(s)) {
+				if(s2.length() > 1)
+					fa.addTransition(stringState.get(s), s2.charAt(0), stringState.get(s2.substring(1)));
+				else
+					fa.addTransition(stringState.get(s), s2.charAt(0), Final);
+			}
+		}
+
+		return fa;
+		
 	}
 }
 
