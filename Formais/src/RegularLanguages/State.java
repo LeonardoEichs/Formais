@@ -5,8 +5,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class State implements Comparable<State> {
-	String name;
-	UUID id;
+	final String name;
+	final UUID id;
 	boolean isFinal;
 	int n;
 	

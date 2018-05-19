@@ -133,6 +133,7 @@ public class FiniteAutomata extends RegularLanguage{
 			t.remove(0);
 		}
 		t.add(in);
+		t.sort(null);
 		
 		transition.put(symbol, t);
 		/*transitions.remove(out);
