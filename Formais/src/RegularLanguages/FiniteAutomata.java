@@ -151,12 +151,13 @@ public class FiniteAutomata extends RegularLanguage{
 	
 	public boolean checkSentence(String str) {
 		if(deterministic) {
+			str = str.replaceAll("&+", "&");
+			State current = initialState;
+			if(str.equals("&") || str.equals("")) {
+				return initialState.isFinal;
+			}
 			if(!str.matches("[a-z0-9\\&]+")) {
 				return false;
-			}
-			State current = initialState;
-			if(str.equals("&")) {
-				return initialState.isFinal;
 			}
 			for (int i = 0; i < str.length(); i++) {
 				char c = str.charAt(i);
