@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import RegularLanguages.RegularLanguage.InputType;
 
 public class FAMinimizer {
 	
@@ -34,7 +33,7 @@ public class FAMinimizer {
 	}
 	
 	public FiniteAutomata buildAutomata(SortedSet<Character> alphabet, HashMap<State, ArrayList<State>> classes, HashMap<State, HashMap<Character, State>> transitions, State initial) {
-		FiniteAutomata fa = new FiniteAutomata(InputType.RG, alphabet);
+		FiniteAutomata fa = new FiniteAutomata(alphabet);
 		SortedSet<State> states = new TreeSet<State>();
 		Set<State> keys = classes.keySet();
 		Iterator<State> it = keys.iterator();

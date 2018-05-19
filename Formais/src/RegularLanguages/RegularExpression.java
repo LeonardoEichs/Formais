@@ -173,7 +173,7 @@ public class RegularExpression extends RegularLanguage{
 			}
 		}
 		
-		FiniteAutomata fa = new FiniteAutomata(InputType.RG, alphabet);
+		FiniteAutomata fa = new FiniteAutomata(alphabet);
 		
 		HashMap<Set<Node>,State> composition = new HashMap<Set<Node>,State>();
 		
@@ -227,13 +227,13 @@ public class RegularExpression extends RegularLanguage{
 				Set<Node> symbolComposition = unionSymbolsComposition.get(nd.data);
 				if (symbolComposition != null) {
 					symbolComposition.addAll(upComposition);
-			} else { 
-				unionSymbolsComposition.put(nd.data, new HashSet<Node>(upComposition));
+				} else { 
+					unionSymbolsComposition.put(nd.data, new HashSet<Node>(upComposition));
+				}
+			}
 		}
+		return unionSymbolsComposition;
 	}
-}
-return unionSymbolsComposition;
-}
 	
 	protected Set<Node> goDown(Node current, HashSet<Node> visited){
 		
