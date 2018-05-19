@@ -56,8 +56,9 @@ public class NonDeterministicAutomata extends RegularLanguage{
 				char c = itSymbol.next();
 				ArrayList<State> tList = stateTransition.get(c);
 				for(int i = 0; i < tList.size(); i++) {
-					def += tList.get(i).name + "|"; 
+					def += " " + tList.get(i).name; 
 				}
+				def += "|";
 			}
 			if(st.isFinal) {
 				def += "*";
@@ -128,6 +129,9 @@ public class NonDeterministicAutomata extends RegularLanguage{
 		}
 		HashMap<Character, ArrayList<State>> transition = transitions.get(out);
 		ArrayList<State> t = transition.get(symbol);
+		if(t.get(0).name == "$") {
+			t.remove(0);
+		}
 		t.add(in);
 		
 		transition.put(symbol, t);
