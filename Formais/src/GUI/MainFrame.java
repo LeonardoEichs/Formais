@@ -95,49 +95,31 @@ public class MainFrame extends JFrame {
 		});
 		
 		JButton btnMainViewEdit = new JButton("View/Edit");
-		//btnMainViewEdit.addActionListener(new ActionListener() {
-		//	public void actionPerformed(ActionEvent e) {
-		//		if (isLanguageSelected()) {
-		//			String idSelected = jListMainRL.getSelectedValue();
-		//			new ViewEditFrame(MainFrame.this, languages.get(idSelected));
-		//		}
-		//	}
-		//});
+		btnMainViewEdit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (isLanguageSelected()) {
+					String idSelected = jListMainRL.getSelectedValue();
+					new ViewEdit(MainFrame.this, languages.get(idSelected));
+				}
+			}
+
+		});
 		
 		JButton btnMainRemoveRL = new JButton("Remove");
-		//btnMainRemoveRL.addActionListener(new ActionListener() {
-		//    public void actionPerformed(ActionEvent e) {
-		//    	MainFrame.this.removeSelected();
-		//    }
-		//});
+		btnMainRemoveRL.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+		    	MainFrame.this.removeSelected();
+		    }
+		});
 		
-		JButton btnMainRenameRL = new JButton("Rename");
-		//btnMainRenameRL.addActionListener(new ActionListener() {
-		//    public void actionPerformed(ActionEvent e) {
-		//    	MainFrame.this.renameSelected();
-		//    }
-		//});
-		
-		JButton btnMainClear = new JButton("Clear");
-		//btnMainClear.addActionListener(new ActionListener() {
-		//    public void actionPerformed(ActionEvent e) {
-		//    	MainFrame.this.clearList();
-		//    }
-		//});
 		
 		JButton btnMainOperations = new JButton("RL Operations");
-		//btnMainOperations.addActionListener(new ActionListener() {
-		//    public void actionPerformed(ActionEvent e) {
-		//    	new OperationsFrame(MainFrame.this);
-		//    }
-		//});
+		btnMainOperations.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+		    	new Operations(MainFrame.this);
+		    }
+		});
 		
-		JButton btnMainVerifications = new JButton("RL Properties");
-		//btnMainVerifications.addActionListener(new ActionListener() {
-		//    public void actionPerformed(ActionEvent e) {
-		//    	new PropertiesFrame(MainFrame.this);
-		//    }
-		//});
 		
 		// Scrollable JList:
 		
@@ -168,9 +150,9 @@ public class MainFrame extends JFrame {
 					.addGroup(gl_mainPanel.createParallelGroup(Alignment.LEADING, false)
 							.addComponent(btnMainAddRL, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
 							.addComponent(btnMainViewEdit, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
-							.addComponent(btnMainRenameRL, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
 							.addComponent(btnMainRemoveRL, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
-							.addComponent(btnMainClear, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE))
+							.addComponent(btnMainOperations, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
+							)
 					.addContainerGap()
 					.addContainerGap()
 					.addComponent(scrollPaneMainRL, GroupLayout.DEFAULT_SIZE, 330, Short.MAX_VALUE)
@@ -179,8 +161,6 @@ public class MainFrame extends JFrame {
 				.addGroup(gl_mainPanel.createSequentialGroup()
 					.addGap(46)
 					.addComponent(btnMainOperations, GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
-					.addGap(14)
-					.addComponent(btnMainVerifications, GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
 					.addGap(40))
 		);
 		gl_mainPanel.setVerticalGroup(
@@ -196,21 +176,27 @@ public class MainFrame extends JFrame {
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(btnMainViewEdit, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE)
 							.addGap(7)
-							.addComponent(btnMainRenameRL, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE)
-							.addGap(7)
 							.addComponent(btnMainRemoveRL, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE)
 							.addGap(7)
-							.addComponent(btnMainClear, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE)
 							.addPreferredGap(ComponentPlacement.RELATED, 254, Short.MAX_VALUE)
 							.addGroup(gl_mainPanel.createParallelGroup(Alignment.LEADING)
-								.addComponent(btnMainOperations, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE)
-								.addComponent(btnMainVerifications, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE))))
+								.addComponent(btnMainOperations, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE))))
 					.addContainerGap())
 		);
 		
 		mainPanel.setLayout(gl_mainPanel);
 		
 }
+
+	protected void removeSelected() {
+		if (isLanguageSelected()) {
+			String id = jListMainRL.getSelectedValue();
+			if (this.confirm("Remove \"" + id + '"') == JOptionPane.YES_OPTION) {
+				MainFrame.this.languages.remove(id);
+		    	updateJList();
+			}
+		}	
+	}
 
 	protected int confirm(String string) {
 		return JOptionPane.showConfirmDialog(
@@ -231,6 +217,15 @@ public class MainFrame extends JFrame {
 				.toArray(size -> new String[size]);
 	}
 
+	private boolean isLanguageSelected() {
+		if (jListMainRL.isSelectionEmpty()) {
+			JOptionPane.showMessageDialog(this, "No language selected!");
+			return false;
+		}
+		return true;
+	}
+
+	
 	public RegularLanguage getLanguage(String name) {
 		return this.languages.get(name);
 	}
@@ -239,6 +234,10 @@ public class MainFrame extends JFrame {
 		this.languages.put(rl.getId(), rl);
 		this.updateJList();
 		this.jListMainRL.setSelectedValue(rl.getId(), true);	
+	}
+
+	public HashMap<String, RegularLanguage> getLanguages() {
+		return languages;
 	}		
 			
 }
