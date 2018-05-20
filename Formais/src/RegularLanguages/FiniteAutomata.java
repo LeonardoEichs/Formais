@@ -2,6 +2,7 @@ package RegularLanguages;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -127,11 +128,13 @@ public class FiniteAutomata extends RegularLanguage{
 		if (!(states.contains(out) || states.contains(in))) {
 			return false;
 		}
+
 		HashMap<Character, ArrayList<State>> transition = transitions.get(out);
 		ArrayList<State> t = transition.get(symbol);
 		if(t.get(0).name == "$") {
 			t.remove(0);
 		}
+
 		t.add(in);
 		
 		transition.put(symbol, t);
@@ -195,10 +198,10 @@ public class FiniteAutomata extends RegularLanguage{
 		boolean _isFinal;
 		for(String s : regularGrammar.getVn()) {
 			_isFinal = false;
-			for(String s2: regularGrammar.getProductions(s)) {
-				if(s2.length() == 1)
-					_isFinal = true;
-			}
+			//for(String s2: regularGrammar.getProductions(s)) {
+			//	if(s2.length() == 1)
+			//		_isFinal = true;
+			//}
 			stringState.put(s, new State(s, _isFinal, i++));
 			if(s.toString().equals(regularGrammar.getInitial().toString()))
 				fa.addInitialState(stringState.get(s));
@@ -210,7 +213,6 @@ public class FiniteAutomata extends RegularLanguage{
 		State Final = new State("Final", true, i);
 		fa.addState(Final);
 		
-		System.out.println(regularGrammar.getProductions());
 		for(String s : regularGrammar.getProductions().keySet()) {
 			for(String s2 : regularGrammar.getProductions(s)) {
 				if(s2.length() > 1)
@@ -222,6 +224,43 @@ public class FiniteAutomata extends RegularLanguage{
 
 		return fa;
 		
+	}
+	
+	public FiniteAutomata reverse() {
+		FiniteAutomata new_fa = new FiniteAutomata(this.alphabet);
+		HashMap<String, State> stringState = new HashMap<String, State>();
+		
+		boolean initialFinal = false;
+		if(this.getInitial().isFinal)
+			initialFinal = true;
+		int i = 0;
+		State new_initial = new State("Initial", initialFinal, i++);
+		stringState.put("Initial", new_initial);
+		new_fa.addInitialState(new_initial);	
+				
+		for(State s: this.getStates()) {
+			if(this.getInitial().getName().toString().equals(s.getName().toString()))
+				stringState.put(s.getName().toString(), new State(s.getName().toString(), true, i++));
+			else
+				stringState.put(s.getName().toString(), new State(s.getName().toString(), !s.isFinal, i++));
+			new_fa.addState(stringState.get(s.getName().toString()));
+		}
+
+			
+		for(State state : this.getStates()) {
+			for(char c : this.getAlphabet()) {
+				for(State p : this.getTransitions().get(state).get(c)) {
+					if(!p.name.toString().contains("$")) {
+						new_fa.addTransition(stringState.get(p.getName()), c, stringState.get(state.getName()));
+					}
+					if(p.isFinal)
+						new_fa.addTransition(stringState.get("Initial"), c, stringState.get(state.getName()));
+				}
+			}
+		}
+		
+		System.out.println(new_fa.getDefinition());
+		return new_fa;
 	}
 }
 
