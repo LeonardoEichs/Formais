@@ -241,7 +241,7 @@ public class RegularGrammar extends RegularLanguage{
 						finalState = false;
 				}
 			}
-			if(finalState)				
+			if(finalState && state.isFinal)				
 				finals.add(state);
 		}
 		
@@ -599,6 +599,11 @@ public class RegularGrammar extends RegularLanguage{
 		RegularGrammar new_rg2 = isValidRG(mapToInput(new_rg.productions, "A"));
 		
 		return new_rg2;
+	}
+
+	@Override
+	public FiniteAutomata reverse() {
+		return this.getFA().reverse();
 	}
 
 

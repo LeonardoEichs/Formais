@@ -72,5 +72,7 @@ public abstract class RegularLanguage {
 	
 	public abstract FiniteAutomata getFA();
 	
+	public abstract FiniteAutomata reverse();
+	
 
 }

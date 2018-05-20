@@ -447,6 +447,11 @@ public class RegularExpression extends RegularLanguage{
                 cur = leftMost(cur.right);
         }
     }
+
+	@Override
+	public FiniteAutomata reverse() {
+		return this.getFA().reverse();
+	}
 }
 
 
