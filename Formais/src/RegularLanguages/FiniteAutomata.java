@@ -15,6 +15,7 @@ public class FiniteAutomata extends RegularLanguage{
 	private State errorState;
 	private SortedSet<Character> alphabet;
 	private SortedSet<String> enumN;
+	private boolean deterministic;
 	
 	public FiniteAutomata(SortedSet<Character> _alphabet) {
 		super(InputType.FA);
@@ -22,7 +23,7 @@ public class FiniteAutomata extends RegularLanguage{
 		transitions = new HashMap<State, HashMap<Character, ArrayList<State>>>();
 		errorState = new State("$", false, -1);
 		states = new TreeSet<State>();
-		
+		deterministic = true;
 	}
 	
 	public FiniteAutomata(SortedSet<Character> _alphabet, SortedSet<State> _states, 
@@ -33,7 +34,7 @@ public class FiniteAutomata extends RegularLanguage{
 		errorState = new State("$", false, -1);
 		states = _states;
 		initialState = _initialState;
-		
+		deterministic = checkDeterminism();
 	}
 
 	@Override
@@ -109,6 +110,10 @@ public class FiniteAutomata extends RegularLanguage{
 		return states;
 	}
 	
+	public boolean isDeterministic() {
+		return deterministic;
+	}
+	
 	public void addState(State state) {
 		states.add(state);
 		HashMap<Character, ArrayList<State>> _transitions = new HashMap<Character, ArrayList<State>>();
@@ -136,6 +141,10 @@ public class FiniteAutomata extends RegularLanguage{
 		}
 
 		t.add(in);
+		if (t.size() > 1) {
+			deterministic = false;
+		}
+		t.sort(null);
 		
 		transition.put(symbol, t);
 		/*transitions.remove(out);
@@ -144,26 +153,32 @@ public class FiniteAutomata extends RegularLanguage{
 	}
 	
 	public boolean checkSentence(String str) {
-		/*if(!str.matches("[a-z0-9\\&]+")) {
-			return false;
-		}
-		State current = initialState;
-		if(str.equals("&")) {
-			return initialState.isFinal;
-		}
-		for (int i = 0; i < str.length(); i++) {
-			char c = str.charAt(i);
-			if (!alphabet.contains(c)) {
+		if(deterministic) {
+			str = str.replaceAll("&+", "&");
+			State current = initialState;
+			if(str.equals("&") || str.equals("")) {
+				return initialState.isFinal;
+			}
+			if(!str.matches("[a-z0-9\\&]+")) {
 				return false;
 			}
-			HashMap<Character, State> stateTransitions = transitions.get(current);
-			current = stateTransitions.get(c);
-			if (current == errorState) {
-				return false;
+			for (int i = 0; i < str.length(); i++) {
+				char c = str.charAt(i);
+				if (!alphabet.contains(c)) {
+					return false;
+				}
+				HashMap<Character, ArrayList<State>> stateTransitions = transitions.get(current);
+				current = stateTransitions.get(c).get(0);
+				if (current == errorState) {
+					return false;
+				}
 			}
+			return current.isFinal;
+		} else {
+			FADeterminize det = new FADeterminize();
+			FiniteAutomata tmp = det.determinizeAutomata(this);
+			return tmp.checkSentence(str);
 		}
-		return current.isFinal;*/
-		return true;
 	}
 	
 	public SortedSet<String> getEnumeration(int n){
@@ -261,6 +276,23 @@ public class FiniteAutomata extends RegularLanguage{
 		
 		System.out.println(new_fa.getDefinition());
 		return new_fa;
+	}
+		
+	public boolean checkDeterminism() {
+		Iterator<State> itSt = states.iterator();
+		while(itSt.hasNext()) {
+			State current = itSt.next();
+			HashMap<Character, ArrayList<State>> stateTrans = transitions.get(current);
+			Iterator<Character> it = alphabet.iterator();
+			while(it.hasNext()) {
+				char c = it.next();
+				ArrayList<State> temp = stateTrans.get(c);
+				if(temp.size() > 1) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 }
 

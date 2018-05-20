@@ -16,6 +16,11 @@ public class FAMinimizer {
 	}
 	
 	public FiniteAutomata minimize(FiniteAutomata fa) {
+		if(!fa.isDeterministic()) {
+			FADeterminize det = new FADeterminize();
+			fa = det.determinizeAutomata(fa);
+		}
+		
 		HashMap<State, HashMap<Character, ArrayList<State>>> transitions = fa.getTransitions();
 		SortedSet<Character> alphabet = fa.getAlphabet();
 		SortedSet<State> states = fa.getStates();
