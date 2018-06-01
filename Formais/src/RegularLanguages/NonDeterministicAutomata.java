@@ -71,7 +71,6 @@ public class NonDeterministicAutomata extends RegularLanguage{
 
 	@Override
 	public RegularGrammar getRG() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -179,6 +178,12 @@ public class NonDeterministicAutomata extends RegularLanguage{
 			char c = symbols.next();
 			possibleStrings(maxLength, curr+c);
 		}
+	}
+
+	@Override
+	public FiniteAutomata reverse() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
 
