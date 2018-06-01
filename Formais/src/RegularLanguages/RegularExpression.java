@@ -165,6 +165,7 @@ public class RegularExpression extends RegularLanguage{
 		
 		createThreaded(root);
 		
+		
 		SortedSet<Character> alphabet = new TreeSet<Character>();
 		for (int i = 0; i < formattedRE.length(); i++) {
 			char c = formattedRE.charAt(i);
@@ -331,6 +332,7 @@ public class RegularExpression extends RegularLanguage{
 	
 	protected Node buildTree(String in) {
 		int countLeafs = 0;
+		int countOps = 0;
 		Stack<Node> stack = new Stack<>();
 		for (int i = 0; i < in.length(); i++) {
 			char c = in.charAt(i);
@@ -341,6 +343,8 @@ public class RegularExpression extends RegularLanguage{
 				countLeafs++;
 				stack.push(node);
 			} else {
+				node.n = countOps;
+				countOps++;
 				if (operatorPriority(c) == operatorPriority('*')) {
                     node.left = stack.pop();
                 } else {

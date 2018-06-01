@@ -42,6 +42,7 @@ public class FAMinimizer {
 		SortedSet<State> states = new TreeSet<State>();
 		Set<State> keys = classes.keySet();
 		Iterator<State> it = keys.iterator();
+		fa.addInitialState(initial);
 		while(it.hasNext()) {
 			State current = it.next();
 			if(current.name == "$") {
