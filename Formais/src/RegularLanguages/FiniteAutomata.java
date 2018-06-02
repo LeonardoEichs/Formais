@@ -17,6 +17,7 @@ public class FiniteAutomata extends RegularLanguage{
 	private SortedSet<String> enumN;
 	private boolean deterministic;
 	
+	// Constructor
 	public FiniteAutomata(SortedSet<Character> _alphabet) {
 		super(InputType.FA);
 		alphabet = _alphabet;
@@ -26,6 +27,7 @@ public class FiniteAutomata extends RegularLanguage{
 		deterministic = true;
 	}
 	
+	// Constructor
 	public FiniteAutomata(SortedSet<Character> _alphabet, SortedSet<State> _states, 
 			HashMap<State, HashMap<Character, ArrayList<State>>> _transitions, State _initialState) {
 		super(InputType.FA);
@@ -71,49 +73,57 @@ public class FiniteAutomata extends RegularLanguage{
 		return def;
 	}
 
+	// Return equivalent in Regular Grammar
 	@Override
 	public RegularGrammar getRG() {
 		RegularGrammar rg = RegularGrammar.faToRG(this);
 		return rg;
 	}
 
+	// NOT REQUIRED
 	@Override
 	public RegularExpression getRE() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
+	// Return Finite Automata
 	@Override
 	public FiniteAutomata getFA() {
-		// TODO Auto-generated method stub
 		return this;
 	}
 	
+	// Add a Initial State
 	public void addInitialState(State ini) {
 		initialState = ini;
 		addState(ini);
 	}
 	
+	// Return Initial State
 	public State getInitial() {
 		return initialState;
 	}
 	
+	// Return the Transitions
 	public HashMap<State, HashMap<Character, ArrayList<State>>> getTransitions(){
 		return transitions;
 	}
 	
+	// Return alphabet
 	public SortedSet<Character> getAlphabet() {
 		return alphabet;
 	}
 	
+	// Return States
 	public SortedSet<State> getStates(){
 		return states;
 	}
 	
+	// Return if is Deterministic
 	public boolean isDeterministic() {
 		return deterministic;
 	}
 	
+	// Add State
 	public void addState(State state) {
 		states.add(state);
 		HashMap<Character, ArrayList<State>> _transitions = new HashMap<Character, ArrayList<State>>();
@@ -129,6 +139,7 @@ public class FiniteAutomata extends RegularLanguage{
 		transitions.put(state, _transitions);
 	}
 	
+	// Add Transition
 	public boolean addTransition(State out, char symbol, State in) {
 		if (!(states.contains(out) || states.contains(in))) {
 			return false;
@@ -147,11 +158,10 @@ public class FiniteAutomata extends RegularLanguage{
 		t.sort(null);
 		
 		transition.put(symbol, t);
-		/*transitions.remove(out);
-		transitions.put(out, transition);*/
 		return true;
 	}
 	
+	// Check if sentence belongs to Finite Automata
 	public boolean checkSentence(String str) {
 		if(deterministic) {
 			str = str.replaceAll("&+", "&");
@@ -181,6 +191,7 @@ public class FiniteAutomata extends RegularLanguage{
 		}
 	}
 	
+	// Return enumeration
 	public SortedSet<String> getEnumeration(int n){
 		enumN = new TreeSet<String>();
 		possibleStrings(n, "");
@@ -201,6 +212,7 @@ public class FiniteAutomata extends RegularLanguage{
 		}
 	}
 
+	// Convert Regular Grammar to Finite Automata
 	public static FiniteAutomata rgToFA(RegularGrammar regularGrammar) {
 		HashMap<String, State> stringState = new HashMap<String, State>();
 		SortedSet<Character> _alphabet = new TreeSet<Character>();
@@ -216,10 +228,6 @@ public class FiniteAutomata extends RegularLanguage{
 		fa.addInitialState(stringState.get(sInitial));
 		for(String s : regularGrammar.getVn()) {
 			_isFinal = false;
-			//for(String s2: regularGrammar.getProductions(s)) {
-			//	if(s2.length() == 1)
-			//		_isFinal = true;
-			//}
 			if(s.toString().equals(regularGrammar.getInitial().toString()))
 				continue;
 			else {
@@ -244,6 +252,7 @@ public class FiniteAutomata extends RegularLanguage{
 		
 	}
 	
+	// Return reversed automata
 	public FiniteAutomata reverse() {
 		FiniteAutomata new_fa = new FiniteAutomata(this.alphabet);
 		HashMap<String, State> stringState = new HashMap<String, State>();
@@ -279,7 +288,8 @@ public class FiniteAutomata extends RegularLanguage{
 		
 		return new_fa;
 	}
-		
+	
+	// Check if is deterministic
 	public boolean checkDeterminism() {
 		Iterator<State> itSt = states.iterator();
 		while(itSt.hasNext()) {
@@ -297,6 +307,7 @@ public class FiniteAutomata extends RegularLanguage{
 		return true;
 	}
 	
+	// Return complement of finite automata
 	public FiniteAutomata complement() {
 		FiniteAutomata new_fa = new FiniteAutomata(this.getAlphabet());
 		if(checkDeterminism()) {
@@ -342,6 +353,7 @@ public class FiniteAutomata extends RegularLanguage{
 		return new_fa;
 	}
 	
+	// Return the intersections of two finite automatas
 	public FiniteAutomata intersection(FiniteAutomata fa) {
 		FiniteAutomata r_this = this.complement();
 		FiniteAutomata r_fa = fa.complement();
@@ -350,12 +362,14 @@ public class FiniteAutomata extends RegularLanguage{
 		return new_fa;
 	}
 	
+	// Return the difference between two finite automatas
 	public FiniteAutomata difference(FiniteAutomata fa) {
 		FiniteAutomata r_fa = fa.complement();
 		FiniteAutomata new_fa = this.intersection(r_fa);
 		return new_fa;
 	}
 	
+	// Return the union of two automatas
 	public FiniteAutomata union(FiniteAutomata fa) {
 		SortedSet<Character> newAlphabet = new TreeSet<Character>();
 		for(char c : this.getAlphabet()) {
@@ -474,6 +488,7 @@ public class FiniteAutomata extends RegularLanguage{
 		return new_fa;
 	}
 
+	// Return intersection between two regular languages
 	@Override
 	public FiniteAutomata intersection(RegularLanguage rl) {
 		if(rl.getType() == InputType.FA) {
@@ -495,6 +510,7 @@ public class FiniteAutomata extends RegularLanguage{
 		return null;
 	}
 
+	// Return difference between two regular languages
 	@Override
 	public FiniteAutomata difference(RegularLanguage rl) {
 		if(rl.getType() == InputType.FA) {

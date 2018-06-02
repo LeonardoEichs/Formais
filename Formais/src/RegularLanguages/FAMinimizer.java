@@ -53,7 +53,7 @@ public class FAMinimizer {
 	 * @param initial Estado inicial
 	 * @return Automato mínimo
 	 */
-	public FiniteAutomata buildAutomata(SortedSet<Character> alphabet, HashMap<State, ArrayList<State>> classes, HashMap<State, HashMap<Character, ArrayList<State>>> transitions, State initial) {
+	protected FiniteAutomata buildAutomata(SortedSet<Character> alphabet, HashMap<State, ArrayList<State>> classes, HashMap<State, HashMap<Character, ArrayList<State>>> transitions, State initial) {
 		FiniteAutomata fa = new FiniteAutomata(alphabet);
 		SortedSet<State> states = new TreeSet<State>();
 		Set<State> keys = classes.keySet();
@@ -100,7 +100,7 @@ public class FAMinimizer {
 	 * @param initial Estado inicial
 	 * @return Lista de estados sem equivalência
 	 */
-	public HashMap<State, ArrayList<State>> checkEquivalence(SortedSet<Character> alphabet, SortedSet<State> states, HashMap<State, HashMap<Character, ArrayList<State>>> transitions, State initial) {
+	protected HashMap<State, ArrayList<State>> checkEquivalence(SortedSet<Character> alphabet, SortedSet<State> states, HashMap<State, HashMap<Character, ArrayList<State>>> transitions, State initial) {
 		//Cada classe de equivalência é representada por um estado
 		HashMap<State, ArrayList<State>> classes = new HashMap<State, ArrayList<State>>();
 		//Duas classes de equivalência iniciais, finais e não finais
@@ -206,7 +206,7 @@ public class FAMinimizer {
 	 * @param classes Classes de equivalencia
 	 * @return Se os estados são equivalentes
 	 */
-	public boolean isEquivalent(State base, State current, HashMap<State, HashMap<Character, ArrayList<State>>> transitions, HashMap<State, ArrayList<State>> classes) {
+	protected boolean isEquivalent(State base, State current, HashMap<State, HashMap<Character, ArrayList<State>>> transitions, HashMap<State, ArrayList<State>> classes) {
 		Set<Character> alphabet = transitions.get(base).keySet();
 		//Obtem transições da base 
 		HashMap<Character, ArrayList<State>> bTransitions = transitions.get(base);
@@ -233,7 +233,7 @@ public class FAMinimizer {
 		return true;
 	}
 	
-	public boolean checkGroup(State state, ArrayList<State> group) {
+	protected boolean checkGroup(State state, ArrayList<State> group) {
 		for(int i = 0; i < group.size(); i++) {
 			if(state.name.equals(group.get(i).name)) {
 				return true;
@@ -249,7 +249,7 @@ public class FAMinimizer {
 	 * @param transitions Lista de transições
 	 * @return Lista de estados alcançaveis
 	 */
-	public SortedSet<State> checkReacheble(SortedSet<Character> alphabet, HashMap<State, HashMap<Character, ArrayList<State>>> transitions, State initial) {
+	protected SortedSet<State> checkReacheble(SortedSet<Character> alphabet, HashMap<State, HashMap<Character, ArrayList<State>>> transitions, State initial) {
 		SortedSet<State> rchStates = new TreeSet<State>();
 		State current = initial;
 		//Adiciona q0
@@ -300,7 +300,7 @@ public class FAMinimizer {
 	 * @param transitions Lista de transições
 	 * @return Lista de estados vivos
 	 */
-	public SortedSet<State> checkDeadStates(SortedSet<Character> alphabet, SortedSet<State> states, HashMap<State, HashMap<Character, ArrayList<State>>> transitions ){
+	protected SortedSet<State> checkDeadStates(SortedSet<Character> alphabet, SortedSet<State> states, HashMap<State, HashMap<Character, ArrayList<State>>> transitions ){
 		SortedSet<State> alive = new TreeSet<State>();
 		State current;
 		
@@ -350,7 +350,7 @@ public class FAMinimizer {
 	 * @param transitions Lista de transições
 	 * @return Lista de transições atualizada
 	 */
-	public HashMap<State, HashMap<Character, ArrayList<State>>> removeTransitions(SortedSet<Character> alphabet, SortedSet<State> states, HashMap<State,
+	protected HashMap<State, HashMap<Character, ArrayList<State>>> removeTransitions(SortedSet<Character> alphabet, SortedSet<State> states, HashMap<State,
 		HashMap<Character, ArrayList<State>>> transitions) {	
 		HashMap<State, HashMap<Character, ArrayList<State>>> newTransitions = new HashMap<State, HashMap<Character, ArrayList<State>>>();
 		Iterator<State> it = states.iterator();

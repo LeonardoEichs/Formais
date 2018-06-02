@@ -15,10 +15,10 @@ import RegularLanguages.RegularLanguage.InputType;
 
 public class RegularGrammar extends RegularLanguage{
 	
-	private HashSet<String> vn;
-	private HashSet<Character> vt;
+	private HashSet<String> vn; // Non-terminal
+	private HashSet<Character> vt; // Terminal
 	private HashMap<String, HashSet<String>> productions;
-	private String s;
+	private String s; // Initial
 
 	public RegularGrammar(String input) {
 		super(input, InputType.RG);
@@ -27,7 +27,8 @@ public class RegularGrammar extends RegularLanguage{
 		vt = new HashSet<Character>();
 		productions = new HashMap<String, HashSet<String>>();
 	}
-		
+	
+	// Lexical validation of symbols
 	private static boolean lexicalValidation(String inp) {
 		String formatted = inp.replaceAll("\\s+", "");
 		if(!formatted.matches("^[a-zA-Z0-9\\->|&']+"))
@@ -35,6 +36,7 @@ public class RegularGrammar extends RegularLanguage{
 		return true;
 	}
 	
+	// Check if Regular Grammar is valid
 	public static RegularGrammar isValidRG(String inp) {
 		if(!lexicalValidation(inp)) {
 			return null;
@@ -54,6 +56,7 @@ public class RegularGrammar extends RegularLanguage{
 		return rg;
 	}
 
+	// Validate productions
 	private static RegularGrammar validateProductions(String[] productions, RegularGrammar rg) {
 		String production = "";
 		String vn;
@@ -64,6 +67,7 @@ public class RegularGrammar extends RegularLanguage{
 			vnProd = production.split("->");
 			if(vnProd.length == 2) {
 				if(vnProd[0].length() > 1) {
+					// If the symbols after the Non-Terminal is not ' it should fail
 					if(!(vnProd[0].matches(".[\\']+")))
 						return null;
 				}
@@ -94,6 +98,7 @@ public class RegularGrammar extends RegularLanguage{
 		
 	}
 
+	// Verify if production obey rules
 	private static boolean verifyProduction(String vn2, String production, HashSet<String> prodList, RegularGrammar rg) {
 		String[] prods = production.split("\\|");
 		String prod;
@@ -153,22 +158,27 @@ public class RegularGrammar extends RegularLanguage{
 		return true;
 	}
 
+	// Return non-terminals
 	public HashSet<String> getVn() {
 		return vn;
 	}
 	
+	// Return terminals
 	public Set<Character> getVt() {
 		return vt;
 	}
 	
+	// Return initial
 	public String getInitial() {
 		return s;
 	}
 	
+	// Return productions
 	public HashMap<String, HashSet<String>> getProductions() {
 		return productions;
 	}
 	
+	// Return specific productions
 	public Set<String> getProductions(String c) {
 		Set<String> prod = productions.get(c);
 		if(prod == null) {
@@ -177,6 +187,7 @@ public class RegularGrammar extends RegularLanguage{
 		return prod;
 	}
 
+	// Put Regular Grammar in printable format
 	@Override
 	public String getDefinition() {
 		String grammar = "";
@@ -200,16 +211,19 @@ public class RegularGrammar extends RegularLanguage{
 		return grammar;
 	}
 
+	// Return Regular Grammar
 	@Override
 	public RegularGrammar getRG() {
 		return this;
 	}
 
+	// Return Regular Expression
 	@Override
 	public RegularExpression getRE() {
 		return null;
 	}
 
+	// Return if is deterministic
 	private boolean isDeterministic() {
 		int n = 0;
 		for(String s : this.vn) {
@@ -232,6 +246,7 @@ public class RegularGrammar extends RegularLanguage{
 		return false;
 	}
 		
+	// Transform Finite Automata to Regular Grammar
 	public static RegularGrammar faToRG(FiniteAutomata fa) {
 		boolean finalState = true;
 		ArrayList<State> finals = new ArrayList<State>();
@@ -288,12 +303,14 @@ public class RegularGrammar extends RegularLanguage{
 		return new_rg;
 	}
 	
+	// Return Finite Automata
 	@Override
 	public FiniteAutomata getFA() {
 		FiniteAutomata fa = FiniteAutomata.rgToFA(this);
 		return fa;
 	}
 	
+	// Transform HashMap to an Input form to build  Regular Grammar
 	private static String mapToInput(HashMap<String, HashSet<String>> new_prod, String string) {
 		
 		String aux = "";
@@ -337,6 +354,7 @@ public class RegularGrammar extends RegularLanguage{
 		
 	}
 	
+	// Create a deep clone of a hash map
 	private static HashMap<String, HashSet<String>> deepCloneHashMap(HashMap<String, HashSet<String>> productions2) {
 		HashMap<String, HashSet<String>> deepClone = new HashMap<String, HashSet<String>>();
 		   
@@ -349,6 +367,7 @@ public class RegularGrammar extends RegularLanguage{
 
 	}
 	
+	// Rename the states
 	private static RegularGrammar renameStates(RegularGrammar rg, String initialNew) {		
 		HashMap<String, String> vn_r = new HashMap<String, String>();
 
@@ -422,6 +441,7 @@ public class RegularGrammar extends RegularLanguage{
 		return new_rg;
 	}
 	
+	// Get the last letter from renamed states
 	private static String returnLastNonTerminal(RegularGrammar rg, String initialNew) {		
 		HashMap<String, String> vn_r = new HashMap<String, String>();
 
@@ -467,6 +487,7 @@ public class RegularGrammar extends RegularLanguage{
 		return new_symbol;
 	}
 	
+	// Union of Regular Grammars
 	public RegularGrammar union(RegularGrammar rg2) {
 		
 		RegularGrammar new_rg = renameStates(this, "B");
@@ -495,6 +516,7 @@ public class RegularGrammar extends RegularLanguage{
 		return rg;
 	}
 	
+	// Concatenation of Regular Grammars
 	public RegularGrammar concatenation(RegularGrammar rg2) {
 		
 		boolean empty = false;
@@ -544,6 +566,7 @@ public class RegularGrammar extends RegularLanguage{
 		
 	}
 	
+	// Closure Plus of Regular Grammar
 	public RegularGrammar closurePlus() {
 		
 		RegularGrammar new_rg = renameStates(this, "A");
@@ -586,6 +609,7 @@ public class RegularGrammar extends RegularLanguage{
 		return rg;
 	}
 	
+	// Closure Star of Regular Grammar
 	public RegularGrammar closureStar() {
 		
 		RegularGrammar rg = this.closurePlus();
@@ -603,11 +627,13 @@ public class RegularGrammar extends RegularLanguage{
 		return new_rg2;
 	}
 
+	// Transform to Finite Automata and Reverse
 	@Override
 	public FiniteAutomata reverse() {
 		return this.getFA().reverse();
 	}
 
+	// Return the intersection
 	@Override
 	public FiniteAutomata intersection(RegularLanguage rl) {
 		if(rl.getType() == InputType.FA) {
@@ -628,6 +654,7 @@ public class RegularGrammar extends RegularLanguage{
 		return null;
 	}
 
+	// Return the difference
 	@Override
 	public FiniteAutomata difference(RegularLanguage rl) {
 		if(rl.getType() == InputType.FA) {

@@ -46,8 +46,7 @@ public class RegularExpression extends RegularLanguage{
 
 	@Override
 	public RegularGrammar getRG() {
-		// toRG;
-		return null;
+		return this.getFA().getRG();
 	}
 
 	@Override

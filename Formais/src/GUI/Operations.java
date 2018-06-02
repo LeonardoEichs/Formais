@@ -214,28 +214,16 @@ public class Operations extends JFrame{
 			if (rl2 == null) {
 				return false;
 			}
-			if (rl1.getType() != InputType.RG) {
-				return false;
-			}
-			if (rl2.getType() != InputType.RG) {
-				return false;
-			}
 			RegularLanguage newL = rl1.getRG().concatenation(rl2.getRG());
 			newL.setId("[ [" + rl1.getId() + "] \u22C5 [" + rl2.getId() + "] ]");
 			mainFrame.addToPanel(newL);
 			return true;
 		} else if (operation.equals("ClosurePlus")) {
-			if (rl1.getType() != InputType.RG) {
-				return false;
-			}
 			RegularLanguage newL = rl1.getRG().closurePlus();
 			newL.setId("[ [" + rl1.getId() + "]+ ]");
 			mainFrame.addToPanel(newL);
 			return true;
 		} else if (operation.equals("ClosureStar")) {
-			if (rl1.getType() != InputType.RG) {
-				return false;
-			}
 			RegularLanguage newL = rl1.getRG().closureStar();
 			newL.setId("[ [" + rl1.getId() + "]* ]");
 			mainFrame.addToPanel(newL);
