@@ -10,7 +10,11 @@ public class FADeterminize {
 	public FADeterminize() {
 		
 	}
-	
+	/**
+	 * Determiniza um autômato não determinístico
+	 * @param fa Automato a ser determinizado
+	 * @return automato deterministico
+	 */
 	public FiniteAutomata determinizeAutomata(FiniteAutomata fa) {
 		HashMap<State, HashMap<Character, ArrayList<State>>> transitions = fa.getTransitions();
 		SortedSet<Character> alphabet = fa.getAlphabet();

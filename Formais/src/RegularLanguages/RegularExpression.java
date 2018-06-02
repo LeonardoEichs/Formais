@@ -3,9 +3,7 @@ package RegularLanguages;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
@@ -13,7 +11,6 @@ import java.util.SortedSet;
 import java.util.Stack;
 import java.util.TreeSet;
 
-import RegularLanguages.RegularLanguage.InputType;
 
 public class RegularExpression extends RegularLanguage{
 
@@ -24,7 +21,7 @@ public class RegularExpression extends RegularLanguage{
 	public RegularExpression(String input) {
 		super(input, InputType.RE);
 		this.re = input;
-		this.formattedRE = input.replaceAll("\\s+", "");
+		this.formattedRE = formatRE(input);
 		this.completeRE = this.setCompleteExpression(formattedRE);
 	}
 
@@ -38,6 +35,10 @@ public class RegularExpression extends RegularLanguage{
 		
 	}
 
+	/**
+	 * Obtém a String que define a ER
+	 * @return String que contém a ER
+	 */
 	@Override
 	public String getDefinition() {
 		return re;
@@ -54,15 +55,34 @@ public class RegularExpression extends RegularLanguage{
 		return this;
 	}
 
+	/**
+	 * Executa o algoritmo De Simone para obter
+	 * o Automato Finito da ER.
+	 * @return Automato Finito da ER
+	 */
 	@Override
 	public FiniteAutomata getFA() {
 		return deSimone();
 	}
 	
+	@Override
+	public FiniteAutomata reverse() {
+		return this.getFA().reverse();
+	}
+	
+	/**
+	 * Obtém a ER com as concatenações explicitas.
+	 * @return String com a ER
+	 */
 	public String getCompleteExpression() {
 		return completeRE;
 	}
 	
+	/**
+	 * Explicita as concatenações em um expressão regular
+	 * @param  in expressão regular a ser completada
+	 * @return expressão regular completa
+	 */
 	public String setCompleteExpression(String in) {
 		
 		String re = "";
@@ -80,8 +100,14 @@ public class RegularExpression extends RegularLanguage{
 		return re;
 	}
 	
+	/**
+	 * Valida uma determinada entrada,
+	 * verificando se esta é uma expressão regular correta
+	 * @param  inp String a ser avaliada
+	 * @return se a expressão é válida
+	 */
 	public static boolean validateInput(String inp) {
-		inp = inp.replaceAll("\\s+", "");
+		inp = formatRE(inp);
 		
 		if(!inp.matches("^[a-z0-9\\(\\)\\?\\+\\*\\|\\.\\&]*")) {
 			return false;
@@ -112,6 +138,11 @@ public class RegularExpression extends RegularLanguage{
 		return pcount == 0;
 	}
 	
+	/**
+	 * Determina a prioridade de um operador da expressão
+	 * @param  op operador
+	 * @return prioridade representada por um inteiro
+	 */
 	public static int operatorPriority(char op) {
 		if (op == '*' || op == '+' || op == '?') {
 			return 3;
@@ -125,46 +156,17 @@ public class RegularExpression extends RegularLanguage{
 			
 	}
 	
-	public String toPostOrder() {
-		String s = "";
-		Stack<Character> stack = new Stack<Character>();
-		char c;
-		for (int i = 0; i < completeRE.length(); i++) {
-			c = completeRE.charAt(i);
-			// If the scanned character is an operand, add it to output.
-			if (Character.isLetterOrDigit(c) || c == '&') {
-				s += c;
-			} else if (c == '(') { // If the scanned character is an '(', push it to the stack.
-				stack.push(c);
-			} else if (c == ')') { //  If the scanned character is an ')', pop and output from the stack 
-	            					// until an '(' is encountered.
-				while (!stack.isEmpty() && stack.peek() != '(') {
-                    s += stack.pop();
-				}
-                if (!stack.isEmpty() && stack.peek() != '(') {
-                    return "Invalid Expression"; // invalid expression                
-                } else { 
-                    stack.pop();
-                }
-			} else { // an operator is encountered
-				while (!stack.isEmpty() && operatorPriority(c) <= operatorPriority(stack.peek())) {
-                    s += stack.pop();
-				}
-                stack.push(c);
-			}
-		} 
-		// pop all the operators from the stack
-        while (!stack.isEmpty()) {
-            s += stack.pop();
-        }
-		return s;
-	}
-	
+	/**
+	 * Algoritmo De Simone para transformar ER em AF
+	 * @return AF correspondente à ER
+	 */
 	protected FiniteAutomata deSimone(){
+		// monta a arvore com os operando e símbolos 
 		Node root = buildTree(this.toPostOrder());
-		
+		// costura da arvore
 		createThreaded(root);
 		
+		// obtém os símbolos da ER
 		SortedSet<Character> alphabet = new TreeSet<Character>();
 		for (int i = 0; i < formattedRE.length(); i++) {
 			char c = formattedRE.charAt(i);
@@ -175,11 +177,16 @@ public class RegularExpression extends RegularLanguage{
 		
 		FiniteAutomata fa = new FiniteAutomata(alphabet);
 		
+		//lista de composições correspondendo a cada novo estado
 		HashMap<Set<Node>,State> composition = new HashMap<Set<Node>,State>();
 		
+		//obtém a composição de q0, percorrendo a arvore para baixo
 		Set<Node> firstNodes = goDown(root, new HashSet<Node>());
+		//novos estados a serem avaliados
 		ArrayList<Set<Node>> nextNodes = new ArrayList<Set<Node>>();
+		//adiciona a primeira composição à lista
 		nextNodes.add(firstNodes);
+		//determina se q0 é final, verificando se há lambda em sua composição
 		boolean isFinal = false;
 		for (Node nd : firstNodes) {
 			if (nd.data == '$') {
@@ -188,18 +195,28 @@ public class RegularExpression extends RegularLanguage{
 			}
 		}
 		State q0 = new State("q0", isFinal, 0);
+		//relaciona a composição obtida a q0
 		composition.put(firstNodes, q0);
+		//determina q0 como estado inicial do AF
 		fa.addInitialState(q0);
 		int j = 1;
+		//para cada nova composição(possivel estado)
 		for(int i = 0; i < nextNodes.size(); i++) {
 			Set<Node> stateComposition = nextNodes.get(i);
+			//Estado relacionado à composição sendo verificada
 			State out = composition.get(stateComposition);
-			HashMap<Character, Set<Node>> unionSymbolsComposition = new HashMap<Character, Set<Node>>();	
-			unionSymbolsComposition = getStateQiComposition(unionSymbolsComposition, stateComposition);
+			//Conjunto de composições separada por símbolos da ER
+			HashMap<Character, Set<Node>> unionSymbolsComposition = new HashMap<Character, Set<Node>>();
+			//Obtém as composições possíveis a partir da composição atual
+			unionSymbolsComposition = getStateQiComposition(stateComposition);
+			//Para cada símbolo presente na composição
 			for (Character nodeSymbol : unionSymbolsComposition.keySet()) {
 				Set<Node> symbolComposition = unionSymbolsComposition.get(nodeSymbol);
+				//Obtém estado associado à composição do símbolo
 				State in = composition.get(symbolComposition);
+				//caso estado não exista
 				if (in == null) {
+					//cria novo estado
 					in = new State("q" + j, false, j);
 					j++;
 					fa.addState(in);
@@ -212,6 +229,7 @@ public class RegularExpression extends RegularLanguage{
 						}
 					}
 				}
+				//adiciona a transição ao AF
 				fa.addTransition(out, nodeSymbol, in);
 			}
 		}
@@ -220,9 +238,19 @@ public class RegularExpression extends RegularLanguage{
 		return fa;
 	}
 	
-	public HashMap<Character, Set<Node>> getStateQiComposition (HashMap<Character, Set<Node>> unionSymbolsComposition, Set<Node> qiComposition) {
+	/**
+	 * Percorre a arvore para cima para cada nodo folha na composição
+	 * e obtém a proxima composição
+	 * @param  qicomposition composição atual
+	 * @return mapa de composições para cada simbolo
+	 */
+	public HashMap<Character, Set<Node>> getStateQiComposition (Set<Node> qiComposition) {
+		HashMap<Character, Set<Node>> unionSymbolsComposition = new HashMap<Character, Set<Node>>();
+		//para cada nodo folha
 		for (Node nd : qiComposition) {
-			if (nd.data != '$') { 
+			//se não for lambda
+			if (nd.data != '$') {
+				//percorre a arvore para cima
 				Set<Node> upComposition = goUp(nd, new HashSet<Node>()); 
 				Set<Node> symbolComposition = unionSymbolsComposition.get(nd.data);
 				if (symbolComposition != null) {
@@ -235,10 +263,15 @@ public class RegularExpression extends RegularLanguage{
 		return unionSymbolsComposition;
 	}
 	
+	/**
+	 * Obtém a rotina para baixo de cada operador
+	 * @param  current nodo a obter rotina
+	 * @param  visited lista de nodos já visitados
+	 * @return nodos obtidos na rotina
+	 */
 	protected Set<Node> goDown(Node current, HashSet<Node> visited){
 		
 		char c = current.data;
-		//Stack<Node> nodesToGo = new Stack<Node>();
 		Set<Node> composition = new HashSet<Node>();
 		if (c == '&') {
 			if (visited.contains(current)) {
@@ -276,9 +309,14 @@ public class RegularExpression extends RegularLanguage{
 		return composition;
 	}
 	
+	/**
+	 * Obtém a rotina para cima de cada operador
+	 * @param  current nodo a obter rotina
+	 * @param  visited lista de nodos já visitados
+	 * @return nodos obtidos na rotina
+	 */
 	protected Set<Node> goUp(Node current, HashSet<Node> visited){
 		char c = current.data;
-		//Stack<Node> nodesToGo = new Stack<Node>();
 		Set<Node> composition = new HashSet<Node>();
 		if (c == '*' || c == '+') {
 			if (visited.contains(current)) {
@@ -329,8 +367,14 @@ public class RegularExpression extends RegularLanguage{
 		return composition;
 	}
 	
+	/**
+	 * Monta a arvore relacionada à ER
+	 * @param  in ER em pós ordem
+	 * @return nodo raíz
+	 */
 	protected Node buildTree(String in) {
 		int countLeafs = 0;
+		int countOps = 0;
 		Stack<Node> stack = new Stack<>();
 		for (int i = 0; i < in.length(); i++) {
 			char c = in.charAt(i);
@@ -341,6 +385,8 @@ public class RegularExpression extends RegularLanguage{
 				countLeafs++;
 				stack.push(node);
 			} else {
+				node.n = countOps;
+				countOps++;
 				if (operatorPriority(c) == operatorPriority('*')) {
                     node.left = stack.pop();
                 } else {
@@ -353,24 +399,27 @@ public class RegularExpression extends RegularLanguage{
 		return stack.pop();
 	}
 	
-	void printPreorder(Node node)
-	{
-	     if (node == null)
-	          return;
-	     System.out.print(node.data);
-	     
-	     printPreorder(node.left);  
-	 
-	     printPreorder(node.right);
-	} 
+	public static String formatRE(String in) {
+		String inp = in;
+		inp = inp.replaceAll("\\s+", "");
+		inp = inp.replaceAll("\\*+", "*");
+		inp = inp.replaceAll("\\++", "+");
+		inp = inp.replaceAll("\\?\\*+", "*");
+		inp = inp.replaceAll("\\?\\+", "*");
+		inp = inp.replaceAll("\\+\\?", "*");
+		inp = inp.replaceAll("\\*+\\?", "*");
+		inp = inp.replaceAll("\\+\\*+", "*");
+		inp = inp.replaceAll("\\*+\\+", "*");
+		inp = inp.replaceAll("\\*+", "*");
+		return inp;
+	}
+
 	
-	
-	
-	
-	
-	
-	
-	
+	/**
+	 * Métodos utilizados para a construção da arvore com costura,
+	 * obtidos em https://www.geeksforgeeks.org/convert-binary-tree-threaded-binary-tree-2/
+	 * ultimo acesso 01/06/2018
+	 */
 	void populateQueue(Node node, Queue<Node> q) 
     {
         if (node == null)
@@ -447,10 +496,40 @@ public class RegularExpression extends RegularLanguage{
                 cur = leftMost(cur.right);
         }
     }
-
-	@Override
-	public FiniteAutomata reverse() {
-		return this.getFA().reverse();
+    
+    public String toPostOrder() {
+		String s = "";
+		Stack<Character> stack = new Stack<Character>();
+		char c;
+		for (int i = 0; i < completeRE.length(); i++) {
+			c = completeRE.charAt(i);
+			// If the scanned character is an operand, add it to output.
+			if (Character.isLetterOrDigit(c) || c == '&') {
+				s += c;
+			} else if (c == '(') { // If the scanned character is an '(', push it to the stack.
+				stack.push(c);
+			} else if (c == ')') { //  If the scanned character is an ')', pop and output from the stack 
+	            					// until an '(' is encountered.
+				while (!stack.isEmpty() && stack.peek() != '(') {
+                    s += stack.pop();
+				}
+                if (!stack.isEmpty() && stack.peek() != '(') {
+                    return "Invalid Expression"; // invalid expression                
+                } else { 
+                    stack.pop();
+                }
+			} else { // an operator is encountered
+				while (!stack.isEmpty() && operatorPriority(c) <= operatorPriority(stack.peek())) {
+                    s += stack.pop();
+				}
+                stack.push(c);
+			}
+		} 
+		// pop all the operators from the stack
+        while (!stack.isEmpty()) {
+            s += stack.pop();
+        }
+		return s;
 	}
 
 	@Override
