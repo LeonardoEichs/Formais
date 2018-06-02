@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -16,7 +17,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.LayoutStyle.ComponentPlacement;
 
+import RegularLanguages.FADeterminize;
+import RegularLanguages.FAMinimizer;
+import RegularLanguages.FiniteAutomata;
 import RegularLanguages.RegularLanguage;
+import RegularLanguages.RegularLanguage.InputType;
 
 public class Operations extends JFrame{
 
@@ -70,6 +75,7 @@ public class Operations extends JFrame{
 		
 		JComboBox<String> cbOpOperations = new JComboBox<String>();
 		cbOpOperations.addItem("Intersection");
+		cbOpOperations.addItem("Complement");
 		cbOpOperations.addItem("Difference");
 		cbOpOperations.addItem("Reverse");
 		cbOpOperations.addItem("Union");
@@ -81,7 +87,7 @@ public class Operations extends JFrame{
 		cbOpOperations.addActionListener (new ActionListener () {
 		    public void actionPerformed(ActionEvent e) {
 		    	String selected = String.valueOf(cbOpOperations.getSelectedItem());
-		    	if (selected.equals("Union") || selected.equals("Intersection")) {
+		    	if (selected.equals("Union") || selected.equals("Intersection") || selected.equals("Difference") || selected.equals("Concatenation")) {
 		    		cbOpRL2.setEnabled(true);
 		    	} else {
 		    		cbOpRL2.setEnabled(false);
@@ -180,11 +186,7 @@ public class Operations extends JFrame{
 		operationsFramePanel.setLayout(gl_operationsFramePanel);
 		this.populateComboBoxes();
 	}
-	
-	private boolean saveOperation(String operation, RegularLanguage rl1, RegularLanguage rl2) {
-		return true;
-	}
-	/*	
+		
 	// Save new language based on selections
 	private boolean saveOperation(String operation, RegularLanguage rl1, RegularLanguage rl2) {
 		if (rl1 == null) {
@@ -194,30 +196,73 @@ public class Operations extends JFrame{
 			if (rl2 == null) {
 				return false;
 			}
-			RegularLanguage newL = FAOperator.union(rl1.getFA(), rl2.getFA());
+			RegularLanguage newL = rl1.getFA().union(rl2.getFA());
 			newL.setId("[ [" + rl1.getId() + "] \u222A [" + rl2.getId() + "] ]");
 			mainFrame.addToPanel(newL);
 			return true;
 		} else if (operation.equals("Complement")) {
-			RegularLanguage newL = FAOperator.complement(rl1.getFA(), null);
+			RegularLanguage newL = rl1.getFA().complement();
 			newL.setId("[ [" + rl1.getId() + "]\u2201 ]");
 			mainFrame.addToPanel(newL);
 			return true;
-		} else if (operation.equals("Intersection")) {	
-			Map<String, FiniteAutomata> automatas = FAOperator.intersectionSteps(rl1.getFA(), rl2.getFA());
-			automatas.get("C1").setId("[ [" + rl1.getId() + "]\u2201 ]");
-			automatas.get("C2").setId("[ [" + rl2.getId() + "]\u2201 ]");
-			automatas.get("U").setId("[ [" + automatas.get("C1").getId() + "] \u222A [" + automatas.get("C2").getId() + "] ]");
-			automatas.get("I").setId("[ [" + rl1.getId() + "] \u2229 [" + rl2.getId() + "] ]");
-			for (FiniteAutomata fa : automatas.values()) {
-				mainFrame.addToPanel(fa);
+		} else if (operation.equals("Reverse")) {
+			RegularLanguage newL = rl1.getFA().reverse();
+			newL.setId("[ [" + rl1.getId() + "]r ]");
+			mainFrame.addToPanel(newL);
+			return true;
+		} else if (operation.equals("Concatenation")) {
+			if (rl2 == null) {
+				return false;
 			}
+			if (rl1.getType() != InputType.RG) {
+				return false;
+			}
+			if (rl2.getType() != InputType.RG) {
+				return false;
+			}
+			RegularLanguage newL = rl1.getRG().concatenation(rl2.getRG());
+			newL.setId("[ [" + rl1.getId() + "] \u22C5 [" + rl2.getId() + "] ]");
+			mainFrame.addToPanel(newL);
+			return true;
+		} else if (operation.equals("ClosurePlus")) {
+			if (rl1.getType() != InputType.RG) {
+				return false;
+			}
+			RegularLanguage newL = rl1.getRG().closurePlus();
+			newL.setId("[ [" + rl1.getId() + "]+ ]");
+			mainFrame.addToPanel(newL);
+			return true;
+		} else if (operation.equals("ClosureStar")) {
+			if (rl1.getType() != InputType.RG) {
+				return false;
+			}
+			RegularLanguage newL = rl1.getRG().closureStar();
+			newL.setId("[ [" + rl1.getId() + "]* ]");
+			mainFrame.addToPanel(newL);
+			return true;
+
+		} else if (operation.equals("Intersection")) {
+			if (rl2 == null) {
+				return false;
+			}
+			RegularLanguage newL = rl1.getFA().intersection(rl2.getFA());
+			newL.setId("[ [" + rl1.getId() + "] \u2229 [" + rl2.getId() + "] ]");
+			mainFrame.addToPanel(newL);
+		} else if (operation.equals("Difference")) {
+			if (rl2 == null) {
+				return false;
+			}
+			RegularLanguage newL = rl1.getFA().difference(rl2.getFA());
+			newL.setId("[ [" + rl1.getId() + "] - [" + rl2.getId() + "] ]");
+			mainFrame.addToPanel(newL);
 		} else if (operation.equals("Minimize FA")) {
-			RegularLanguage newL = FAOperator.minimize(rl1.getFA());
+			FAMinimizer faMinimizer = new FAMinimizer();
+			RegularLanguage newL = faMinimizer.minimize(rl1.getFA());
 			newL.setId("[ [" + rl1.getId() + "]min ]");
 			mainFrame.addToPanel(newL);
 		} else if (operation.equals("Determinize FA")) {
-			RegularLanguage newL = FAOperator.determinize(rl1.getFA());
+			FADeterminize faDeterminizer = new FADeterminize();
+			RegularLanguage newL = faDeterminizer.determinizeAutomata(rl1.getFA());
 			newL.setId("[ [" + rl1.getId() + "]det ]");
 			mainFrame.addToPanel(newL);
 		} else {
@@ -227,7 +272,7 @@ public class Operations extends JFrame{
 		return true;
 		
 	}
-	*/
+
 
 	// Populate combo boxes with regular languages from the list
 	private void populateComboBoxes() {

@@ -74,5 +74,10 @@ public abstract class RegularLanguage {
 	
 	public abstract FiniteAutomata reverse();
 	
+	public abstract FiniteAutomata intersection(RegularLanguage rl);
+
+	public abstract FiniteAutomata difference(RegularLanguage rl);
+
+	
 
 }

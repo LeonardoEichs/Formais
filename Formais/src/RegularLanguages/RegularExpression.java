@@ -452,6 +452,47 @@ public class RegularExpression extends RegularLanguage{
 	public FiniteAutomata reverse() {
 		return this.getFA().reverse();
 	}
+
+	@Override
+	public FiniteAutomata intersection(RegularLanguage rl) {
+		if(rl.getType() == InputType.FA) {
+			FiniteAutomata fa = (FiniteAutomata) rl;
+			return this.getFA().intersection(fa);
+		}
+		else if(rl.getType() == InputType.RG) {
+			RegularGrammar rg = (RegularGrammar) rl;
+			FiniteAutomata fa = rg.getFA();
+			return this.getFA().intersection(fa);
+		}
+		else if(rl.getType() == InputType.RE) {
+			RegularExpression re = (RegularExpression) rl;
+			FiniteAutomata fa = re.getFA();
+			return this.getFA().intersection(fa);
+
+		}
+		return null;
+	}
+
+	@Override
+	public FiniteAutomata difference(RegularLanguage rl) {
+		if(rl.getType() == InputType.FA) {
+			FiniteAutomata fa = (FiniteAutomata) rl;
+			return this.getFA().difference(fa);
+		}
+		else if(rl.getType() == InputType.RG) {
+			RegularGrammar rg = (RegularGrammar) rl;
+			FiniteAutomata fa = rg.getFA();
+			return this.getFA().difference(fa);
+		}
+		else if(rl.getType() == InputType.RE) {
+			RegularExpression re = (RegularExpression) rl;
+			FiniteAutomata fa = re.getFA();
+			return this.getFA().difference(fa);
+
+		}
+		
+		return null;
+	}
 }
 
 

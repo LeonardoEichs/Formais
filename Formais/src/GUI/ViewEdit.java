@@ -80,7 +80,6 @@ public class ViewEdit extends JFrame{
 		this.setBounds(100, 100, 500, 500);
 		this.setMinimumSize(new Dimension(475, 400));
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		/*
 		// Tabbed scrollable JEditorPanes:
 		
 		viewEditTabbedPane = new JTabbedPane(JTabbedPane.TOP);
@@ -193,8 +192,7 @@ public class ViewEdit extends JFrame{
 						.addComponent(btnViewEditCancel, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE))
 					.addContainerGap())
 		);
-		*/
-		//getContentPane().setLayout(groupLayout);
+		getContentPane().setLayout(groupLayout);
 	}
 	
 //	private void setRadioButtonListeners() {

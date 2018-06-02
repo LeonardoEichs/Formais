@@ -206,21 +206,24 @@ public class FiniteAutomata extends RegularLanguage{
 		SortedSet<Character> _alphabet = new TreeSet<Character>();
 		for(char c : regularGrammar.getVt()) {
 			_alphabet.add(c);
-		}
-		
+		}		
 		FiniteAutomata fa = new FiniteAutomata(_alphabet);
 		int i = 0;
 		boolean _isFinal;
+		String sInitial = regularGrammar.getInitial();
+		_isFinal = false;
+		stringState.put(sInitial, new State(sInitial, _isFinal, i++));
+		fa.addInitialState(stringState.get(sInitial));
 		for(String s : regularGrammar.getVn()) {
 			_isFinal = false;
 			//for(String s2: regularGrammar.getProductions(s)) {
 			//	if(s2.length() == 1)
 			//		_isFinal = true;
 			//}
-			stringState.put(s, new State(s, _isFinal, i++));
 			if(s.toString().equals(regularGrammar.getInitial().toString()))
-				fa.addInitialState(stringState.get(s));
+				continue;
 			else {
+				stringState.put(s, new State(s, _isFinal, i++));
 				fa.addState(stringState.get(s));
 			}
 		}
@@ -274,7 +277,6 @@ public class FiniteAutomata extends RegularLanguage{
 			}
 		}
 		
-		System.out.println(new_fa.getDefinition());
 		return new_fa;
 	}
 		
@@ -294,5 +296,225 @@ public class FiniteAutomata extends RegularLanguage{
 		}
 		return true;
 	}
+	
+	public FiniteAutomata complement() {
+		FiniteAutomata new_fa = new FiniteAutomata(this.getAlphabet());
+		if(checkDeterminism()) {
+			FADeterminize determinize = new FADeterminize();
+			determinize.determinizeAutomata(this).complement();
+		}
+		HashMap<String, State> stringState = new HashMap<String, State>();
+
+		State qErro = new State("qErro", false, 999);
+		stringState.put(this.initialState.getName(), qErro);
+		new_fa.addState(qErro);
+		for(char c : this.alphabet) {
+			new_fa.addTransition(qErro, c, qErro);
+		}
+		
+		
+		int i = 1;
+		State new_initial = new State(this.initialState.getName(), !this.initialState.isFinal, i++);
+		stringState.put(this.initialState.getName(), new_initial);
+		new_fa.addInitialState(new_initial);	
+				
+		for(State s: this.getStates()) {
+			if(s != this.getInitial()) {
+				stringState.put(s.getName().toString(), new State(s.getName().toString(), !s.isFinal, i++));
+				new_fa.addState(stringState.get(s.getName().toString()));
+			}
+		}
+
+			
+		for(State state : this.getStates()) {
+			for(char c : this.getAlphabet()) {
+				for(State p : this.getTransitions().get(state).get(c)) {
+					if(!p.name.toString().contains("$")) {
+						new_fa.addTransition(stringState.get(state.getName()), c, stringState.get(p.getName()));
+					}
+					else {
+						new_fa.addTransition(stringState.get(state.getName()), c, qErro);
+					}
+				}
+			}
+		}
+
+		return new_fa;
+	}
+	
+	public FiniteAutomata intersection(FiniteAutomata fa) {
+		FiniteAutomata r_this = this.complement();
+		FiniteAutomata r_fa = fa.complement();
+		FiniteAutomata union = r_this.union(r_fa);
+		FiniteAutomata new_fa = union.complement();
+		return new_fa;
+	}
+	
+	public FiniteAutomata difference(FiniteAutomata fa) {
+		FiniteAutomata r_fa = fa.complement();
+		FiniteAutomata new_fa = this.intersection(r_fa);
+		return new_fa;
+	}
+	
+	public FiniteAutomata union(FiniteAutomata fa) {
+		SortedSet<Character> newAlphabet = new TreeSet<Character>();
+		for(char c : this.getAlphabet()) {
+			newAlphabet.add(c);
+		}
+		for(char c : fa.getAlphabet()) {
+			newAlphabet.add(c);
+		}
+		FiniteAutomata new_fa = new FiniteAutomata(newAlphabet);
+
+		HashMap<String, State> stringState = new HashMap<String, State>();
+		int i = 1;
+
+		char alphabet = 'A';
+		int endAlphabet = 0;		
+		String new_symbol;
+		
+		String pState;
+		for(State s : this.getStates()) {
+			pState = s.getName().toString();
+			if(endAlphabet == 0) {
+				stringState.put(pState, new State(Character.toString(alphabet), s.isFinal, i++));
+			}
+			else {
+				new_symbol = Character.toString(alphabet);
+				for(int e = 0; e< endAlphabet; e++) {
+					new_symbol = new_symbol + "'";
+				}
+				stringState.put(pState, new State(new_symbol, s.isFinal, i++));
+			}
+			if(alphabet == 'Z') {
+				alphabet = 'A';
+				endAlphabet++;
+			}
+			else {
+				alphabet++;
+			}
+		}
+		
+		for(State s: this.getStates()) {
+			new_fa.addState(stringState.get(s.getName().toString()));
+		}
+				
+		for(State state : this.getStates()) {
+			for(char c : this.getAlphabet()) {
+				for(State p : this.getTransitions().get(state).get(c)) {
+					if(!p.name.toString().contains("$")) {
+						new_fa.addTransition(stringState.get(state.getName()), c, stringState.get(p.getName()));
+					}
+				}
+			}
+		}
+		
+		State new_initial;
+		if(this.getInitial().isFinal && fa.getInitial().isFinal) {
+			new_initial = new State("Initial", true, 0);
+		}
+		else {
+			new_initial = new State("Initial", false, 0);
+		}
+		stringState.put("Initial", new_initial);
+		new_fa.addInitialState(new_initial);
+				
+		for(char c : this.getAlphabet()) {
+			for(State p : this.getTransitions().get(this.initialState).get(c)) {
+				if(!p.name.toString().contains("$")) {
+					new_fa.addTransition(new_initial, c, stringState.get(p.getName()));
+				}
+			}
+		}
+		
+		stringState = new HashMap<String, State>();
+		for(State s : fa.getStates()) {
+			pState = s.getName().toString();
+			if(endAlphabet == 0) {
+				stringState.put(pState, new State(Character.toString(alphabet), s.isFinal, i++));
+			}
+			else {
+				new_symbol = Character.toString(alphabet);
+				for(int e = 0; e< endAlphabet; e++) {
+					new_symbol = new_symbol + "'";
+				}
+				stringState.put(pState, new State(new_symbol, s.isFinal, i++));
+			}
+			if(alphabet == 'Z') {
+				alphabet = 'A';
+				endAlphabet++;
+			}
+			else {
+				alphabet++;
+			}
+		}
+		
+		for(State s: fa.getStates()) {
+			new_fa.addState(stringState.get(s.getName().toString()));
+		}
+				
+		for(State state : fa.getStates()) {
+			for(char c : fa.getAlphabet()) {
+				for(State p : fa.getTransitions().get(state).get(c)) {
+					if(!p.name.toString().contains("$")) {
+						new_fa.addTransition(stringState.get(state.getName()), c, stringState.get(p.getName()));
+					}
+				}
+			}
+		}
+		
+		for(char c : fa.getAlphabet()) {
+			for(State p : fa.getTransitions().get(fa.initialState).get(c)) {
+				if(!p.name.toString().contains("$")) {
+					new_fa.addTransition(new_initial, c, stringState.get(p.getName()));
+				}
+			}
+		}
+
+		return new_fa;
+	}
+
+	@Override
+	public FiniteAutomata intersection(RegularLanguage rl) {
+		if(rl.getType() == InputType.FA) {
+			FiniteAutomata fa = (FiniteAutomata) rl;
+			return this.intersection(fa);
+		}
+		else if(rl.getType() == InputType.RG) {
+			RegularGrammar rg = (RegularGrammar) rl;
+			FiniteAutomata fa = rg.getFA();
+			return this.intersection(fa);
+		}
+		else if(rl.getType() == InputType.RE) {
+			RegularExpression re = (RegularExpression) rl;
+			FiniteAutomata fa = re.getFA();
+			return this.intersection(fa);
+
+		}
+		
+		return null;
+	}
+
+	@Override
+	public FiniteAutomata difference(RegularLanguage rl) {
+		if(rl.getType() == InputType.FA) {
+			FiniteAutomata fa = (FiniteAutomata) rl;
+			return this.difference(fa);
+		}
+		else if(rl.getType() == InputType.RG) {
+			RegularGrammar rg = (RegularGrammar) rl;
+			FiniteAutomata fa = rg.getFA();
+			return this.difference(fa);
+		}
+		else if(rl.getType() == InputType.RE) {
+			RegularExpression re = (RegularExpression) rl;
+			FiniteAutomata fa = re.getFA();
+			return this.difference(fa);
+
+		}
+		
+		return null;
+	}
+	
 }
 
