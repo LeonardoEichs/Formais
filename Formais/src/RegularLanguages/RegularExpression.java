@@ -193,12 +193,14 @@ public class RegularExpression extends RegularLanguage{
 				break;
 			}
 		}
-		State q0 = new State("q0", isFinal, 0);
+		State q0 = new State("A", isFinal, 0);
 		//relaciona a composição obtida a q0
 		composition.put(firstNodes, q0);
 		//determina q0 como estado inicial do AF
 		fa.addInitialState(q0);
 		int j = 1;
+		char nameAlphabet = 'B';
+		int endAlphabet = 0;		
 		//para cada nova composição(possivel estado)
 		for(int i = 0; i < nextNodes.size(); i++) {
 			Set<Node> stateComposition = nextNodes.get(i);
@@ -216,8 +218,25 @@ public class RegularExpression extends RegularLanguage{
 				//caso estado não exista
 				if (in == null) {
 					//cria novo estado
-					in = new State("q" + j, false, j);
+					if(endAlphabet == 0) {
+						in = new State(Character.toString(nameAlphabet), false, j);
+					}
+					else {
+						String new_symbol = Character.toString(nameAlphabet);
+						for(int e = 0; e< endAlphabet; e++) {
+							new_symbol = new_symbol + "'";
+						}
+						in = new State(new_symbol, false, j);
+					}
+					if(nameAlphabet == 'Z') {
+						nameAlphabet = 'A';
+						endAlphabet++;
+					}
+					else {
+						nameAlphabet++;
+					}
 					j++;
+
 					fa.addState(in);
 					composition.put(symbolComposition, in); 
 					nextNodes.add(symbolComposition);
