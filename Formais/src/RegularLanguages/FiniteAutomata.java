@@ -236,7 +236,7 @@ public class FiniteAutomata extends RegularLanguage{
 			}
 		}
 		
-		State Final = new State("Final", true, i);
+		State Final = new State("Z'''''", true, i);
 		fa.addState(Final);
 		
 		for(String s : regularGrammar.getProductions().keySet()) {

@@ -26,13 +26,15 @@ public class FADeterminize {
 		ArrayList<State> initialGroup = new ArrayList<State>();
 		State initial = fa.getInitial();
 		HashMap<Character, ArrayList<State>> stateTransition = transitions.get(initial);
-		State current = new State("q0", initial.isFinal, 0);
+		State current = new State("A", initial.isFinal, 0);
 		initialGroup.add(initial);
 		table.add(new CompositeState(current, initialGroup));
 		newFA.addInitialState(current);
 		
 		Iterator<Character> it = alphabet.iterator();
 		int count = 1;
+		char nameAlphabet = 'B';
+		int endAlphabet = 0;		
 		while(it.hasNext()) {
 			char c = it.next();
 			ArrayList<State> symbolTransitions = stateTransition.get(c);
@@ -50,7 +52,23 @@ public class FADeterminize {
 				}
 			}
 			if(newState == null) {
-				newState = new State("q"+count, isFinal, count);
+				if(endAlphabet == 0) {
+					newState = new State(Character.toString(nameAlphabet), isFinal, count);
+				}
+				else {
+					String new_symbol = Character.toString(nameAlphabet);
+					for(int e = 0; e< endAlphabet; e++) {
+						new_symbol = new_symbol + "'";
+					}
+					newState = new State(new_symbol, isFinal, count);
+				}
+				if(nameAlphabet == 'Z') {
+					nameAlphabet = 'A';
+					endAlphabet++;
+				}
+				else {
+					nameAlphabet++;
+				}
 				table.add(new CompositeState(newState, symbolTransitions));
 				newStates.add(newState);
 				newFA.addState(newState);
@@ -99,7 +117,23 @@ public class FADeterminize {
 						}
 					}
 					if(newState == null) {
-						newState = new State("q"+count, isFinal, count);
+						if(endAlphabet == 0) {
+							newState = new State(Character.toString(nameAlphabet), isFinal, count);
+						}
+						else {
+							String new_symbol = Character.toString(nameAlphabet);
+							for(int e = 0; e< endAlphabet; e++) {
+								new_symbol = new_symbol + "'";
+							}
+							newState = new State(new_symbol, isFinal, count);
+						}
+						if(nameAlphabet == 'Z') {
+							nameAlphabet = 'A';
+							endAlphabet++;
+						}
+						else {
+							nameAlphabet++;
+						}
 						table.add(new CompositeState(newState, symbolTransitions));
 						newStates.add(newState);
 						newFA.addState(newState);

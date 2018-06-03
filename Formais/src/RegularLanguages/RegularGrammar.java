@@ -260,6 +260,7 @@ public class RegularGrammar extends RegularLanguage{
 			}
 			if(finalState && state.isFinal)				
 				finals.add(state);
+			
 		}
 		
 		HashMap<String, HashSet<String>> new_productions = new HashMap<String, HashSet<String>>();
@@ -281,6 +282,10 @@ public class RegularGrammar extends RegularLanguage{
 					if((notInFinal) && p.getName() != "$"){
 						new_state_name = c + p.getName();
 						prod_value.add(new_state_name);
+						if(p.isFinal) {
+							new_state_name = Character.toString(c);
+							prod_value.add(new_state_name);
+						}
 
 					}
 					else if(p.getName() != "$"){

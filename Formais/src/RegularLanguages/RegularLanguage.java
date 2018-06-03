@@ -2,6 +2,13 @@ package RegularLanguages;
 
 public abstract class RegularLanguage {
 	
+	/*
+	 * InputType: que especifica os tipos de representações de uma linguagem regular;
+	 * Operation: as possíveis operações que podem ser realizadas;
+	 * input: a entrada, inserida pelo usuário;
+	 * id: identificador;
+	 * type: InputType de determinada linguagem.
+	 */
 	public enum InputType {RE, RG, FA, UNDEFINED};
 	
 	public enum Operation {UNION, CONCATENATION, INTERSECTION, DIFFERENCE};
