@@ -316,7 +316,7 @@ public class FiniteAutomata extends RegularLanguage{
 		}
 		HashMap<String, State> stringState = new HashMap<String, State>();
 
-		State qErro = new State("E''''", false, 999);
+		State qErro = new State("E''''", true, 999);
 		stringState.put(this.initialState.getName(), qErro);
 		new_fa.addState(qErro);
 		for(char c : this.alphabet) {
