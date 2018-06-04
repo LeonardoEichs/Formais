@@ -257,9 +257,7 @@ public class FiniteAutomata extends RegularLanguage{
 		FiniteAutomata new_fa = new FiniteAutomata(this.alphabet);
 		HashMap<String, State> stringState = new HashMap<String, State>();
 		
-		boolean initialFinal = false;
-		if(this.getInitial().isFinal)
-			initialFinal = true;
+		boolean initialFinal = this.getInitial().isFinal;
 		int i = 0;
 		State new_initial = new State("S''''", initialFinal, i++);
 		stringState.put("S''''", new_initial);
