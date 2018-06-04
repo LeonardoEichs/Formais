@@ -310,13 +310,8 @@ public class FiniteAutomata extends RegularLanguage{
 	// Return complement of finite automata
 	public FiniteAutomata complement() {
 		FiniteAutomata new_fa = new FiniteAutomata(this.getAlphabet());
-		System.out.println(checkDeterminism());
 		if(!checkDeterminism()) {
-			System.out.println(this.getDefinition());
-			System.out.println(checkDeterminism());
 			FADeterminize determinize = new FADeterminize();
-			System.out.println("-----------");
-			System.out.println(determinize.determinizeAutomata(this).getDefinition());
 			return determinize.determinizeAutomata(this).complement();
 		}
 		HashMap<String, State> stringState = new HashMap<String, State>();
