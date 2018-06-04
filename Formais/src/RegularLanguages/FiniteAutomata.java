@@ -261,8 +261,8 @@ public class FiniteAutomata extends RegularLanguage{
 		if(this.getInitial().isFinal)
 			initialFinal = true;
 		int i = 0;
-		State new_initial = new State("Initial", initialFinal, i++);
-		stringState.put("Initial", new_initial);
+		State new_initial = new State("S''''", initialFinal, i++);
+		stringState.put("S''''", new_initial);
 		new_fa.addInitialState(new_initial);	
 				
 		for(State s: this.getStates()) {
@@ -281,7 +281,7 @@ public class FiniteAutomata extends RegularLanguage{
 						new_fa.addTransition(stringState.get(p.getName()), c, stringState.get(state.getName()));
 					}
 					if(p.isFinal)
-						new_fa.addTransition(stringState.get("Initial"), c, stringState.get(state.getName()));
+						new_fa.addTransition(stringState.get("S''''"), c, stringState.get(state.getName()));
 				}
 			}
 		}
@@ -310,13 +310,18 @@ public class FiniteAutomata extends RegularLanguage{
 	// Return complement of finite automata
 	public FiniteAutomata complement() {
 		FiniteAutomata new_fa = new FiniteAutomata(this.getAlphabet());
-		if(checkDeterminism()) {
+		System.out.println(checkDeterminism());
+		if(!checkDeterminism()) {
+			System.out.println(this.getDefinition());
+			System.out.println(checkDeterminism());
 			FADeterminize determinize = new FADeterminize();
-			determinize.determinizeAutomata(this).complement();
+			System.out.println("-----------");
+			System.out.println(determinize.determinizeAutomata(this).getDefinition());
+			return determinize.determinizeAutomata(this).complement();
 		}
 		HashMap<String, State> stringState = new HashMap<String, State>();
 
-		State qErro = new State("qErro", false, 999);
+		State qErro = new State("E''''", false, 999);
 		stringState.put(this.initialState.getName(), qErro);
 		new_fa.addState(qErro);
 		for(char c : this.alphabet) {
@@ -425,12 +430,12 @@ public class FiniteAutomata extends RegularLanguage{
 		
 		State new_initial;
 		if(this.getInitial().isFinal && fa.getInitial().isFinal) {
-			new_initial = new State("Initial", true, 0);
+			new_initial = new State("S''''", true, 0);
 		}
 		else {
-			new_initial = new State("Initial", false, 0);
+			new_initial = new State("S''''", false, 0);
 		}
-		stringState.put("Initial", new_initial);
+		stringState.put("S''''", new_initial);
 		new_fa.addInitialState(new_initial);
 				
 		for(char c : this.getAlphabet()) {

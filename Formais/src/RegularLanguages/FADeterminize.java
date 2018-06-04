@@ -76,7 +76,7 @@ public class FADeterminize {
 			}
 			newFA.addTransition(current, c, newState);
 		}
-		
+		System.out.println(newStates.size());
 		for(int i = 0; i < newStates.size(); i++) {
 			current = newStates.get(i);
 			int p = 0;
@@ -85,12 +85,14 @@ public class FADeterminize {
 				p++;
 				temp = table.get(p);
 			}
-			
 			it = alphabet.iterator();
 			while(it.hasNext()) {
 				char c = it.next();
 				ArrayList<State> symbolTransitions = new ArrayList<State>();
 				for(p = 0; p < temp.composition.size(); p++) {
+					if(temp.composition.get(p).name == "$") {
+						continue;
+					}
 					stateTransition = transitions.get(temp.composition.get(p));
 					if(!(stateTransition.get(c).get(0).name == "$")) {
 						ArrayList<State> tempTrans = stateTransition.get(c);
