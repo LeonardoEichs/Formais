@@ -19,10 +19,12 @@ public class RegularGrammar extends RegularLanguage{
 	private HashSet<Character> vt; // Terminal
 	private HashMap<String, HashSet<String>> productions;
 	private String s; // Initial
+	private boolean acceptsEmpty;
 
 	public RegularGrammar(String input) {
 		super(input, InputType.RG);
 		s = "";
+		acceptsEmpty = false;
 		vn = new HashSet<String>();
 		vt = new HashSet<Character>();
 		productions = new HashMap<String, HashSet<String>>();
@@ -72,6 +74,10 @@ public class RegularGrammar extends RegularLanguage{
 						return null;
 				}
 				vn = vnProd[0];
+				if(vn.length() == 0) {
+					rg.vn = new HashSet<String>();
+					return null;
+				}
 				prodList = rg.productions.get(vn);
 				if(prodList == null)
 					prodList = new HashSet<String>();
@@ -106,9 +112,21 @@ public class RegularGrammar extends RegularLanguage{
 		if (production.length() < 1) {
 			return false;
 		}
+		if(vn2.equals(rg.s)) {
+			for(String pr : prods) {
+				if(pr.length() == 0) {
+					return false;
+				}
+				if(pr.charAt(0) == '&')
+					rg.acceptsEmpty = true;
+			}
+		}
 		int i = 0;
 		for(String p : prods) {
 			prod = prods[i++];
+			if(prod.length() == 0) {
+				return false;
+			}
 			if(prod.length() > 2) {
 				if(!(prod.matches("^[a-z][A-Z][\\']+$"))) {
 					return false;
@@ -121,8 +139,7 @@ public class RegularGrammar extends RegularLanguage{
 			if(Character.isDigit(first) || Character.isLowerCase(first)) {
 				rg.vt.add(first);
 			}
-			if(prod.length() > 2) {
-
+			if(prod.length() >= 2) {
 				Character second = prod.charAt(1);
 				second_to_end = prod.substring(1);
 				if(Character.isUpperCase(first)) {
@@ -131,7 +148,7 @@ public class RegularGrammar extends RegularLanguage{
 				else if(Character.isLowerCase(second) || Character.isDigit(second) || first == '&' || second == '&') {
 					return false;
 				}
-				if(second_to_end == rg.s && rg.vt.contains('&')) {
+				if(rg.s.contains(second_to_end) && rg.acceptsEmpty) {
 					return false;
 				}
 				rg.vn.add(second_to_end);
