@@ -41,7 +41,7 @@ public class RegularExpression extends RegularLanguage{
 	 */
 	@Override
 	public String getDefinition() {
-		return re;
+		return formattedRE;
 	}
 
 	@Override
@@ -112,6 +112,14 @@ public class RegularExpression extends RegularLanguage{
 			return false;
 		}
 		
+		if (inp.equals("()") || inp.equals("")){
+			return false;
+		}
+		
+		if(!(Character.isLetterOrDigit(inp.charAt(0)) || inp.charAt(0) == '('  || inp.charAt(0) == '&')) {
+			return false;
+		}
+		
 		int pcount = 0;
 		for (int i = 0; i < inp.length(); i++) {
 			char c = inp.charAt(i);
@@ -126,7 +134,11 @@ public class RegularExpression extends RegularLanguage{
 			if (i == 0) {
 				continue;			
 			}
-			if (c == '*' || c == '+' || c == '.' || c == '?') {
+			if (c == '*' || c == '+' || c == '.' || c == '?' || c == '|') {
+				if (inp.charAt(i-1) == '|' || inp.charAt(i-1) == '.' || inp.charAt(i-1) == '(' ) {
+					return false;
+				}
+			} else if (c == ')') {
 				if (inp.charAt(i-1) == '|' || inp.charAt(i-1) == '.') {
 					return false;
 				}
@@ -429,6 +441,9 @@ public class RegularExpression extends RegularLanguage{
 		inp = inp.replaceAll("\\+\\*+", "*");
 		inp = inp.replaceAll("\\*+\\+", "*");
 		inp = inp.replaceAll("\\*+", "*");
+		inp = inp.replaceAll("\\|+", "|");
+		inp = inp.replaceAll("\\.+", ".");
+		inp = inp.replace("()", "(&)");
 		return inp;
 	}
 
