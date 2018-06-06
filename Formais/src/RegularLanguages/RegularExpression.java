@@ -219,12 +219,12 @@ public class RegularExpression extends RegularLanguage{
 			//Estado relacionado à composição sendo verificada
 			State out = composition.get(stateComposition);
 			//Conjunto de composições separada por símbolos da ER
-			HashMap<Character, Set<Node>> unionSymbolsComposition = new HashMap<Character, Set<Node>>();
+			HashMap<Character, Set<Node>> alphabetComposition = new HashMap<Character, Set<Node>>();
 			//Obtém as composições possíveis a partir da composição atual
-			unionSymbolsComposition = getStateQiComposition(stateComposition);
+			alphabetComposition = getStateComposition(stateComposition);
 			//Para cada símbolo presente na composição
-			for (Character nodeSymbol : unionSymbolsComposition.keySet()) {
-				Set<Node> symbolComposition = unionSymbolsComposition.get(nodeSymbol);
+			for (Character nodeSymbol : alphabetComposition.keySet()) {
+				Set<Node> symbolComposition = alphabetComposition.get(nodeSymbol);
 				//Obtém estado associado à composição do símbolo
 				State in = composition.get(symbolComposition);
 				//caso estado não exista
@@ -274,23 +274,23 @@ public class RegularExpression extends RegularLanguage{
 	 * @param  qicomposition composição atual
 	 * @return mapa de composições para cada simbolo
 	 */
-	public HashMap<Character, Set<Node>> getStateQiComposition (Set<Node> qiComposition) {
-		HashMap<Character, Set<Node>> unionSymbolsComposition = new HashMap<Character, Set<Node>>();
+	public HashMap<Character, Set<Node>> getStateComposition (Set<Node> qiComposition) {
+		HashMap<Character, Set<Node>> stateComposition = new HashMap<Character, Set<Node>>();
 		//para cada nodo folha
 		for (Node nd : qiComposition) {
 			//se não for lambda
 			if (nd.data != '$') {
 				//percorre a arvore para cima
 				Set<Node> upComposition = goUp(nd, new HashSet<Node>()); 
-				Set<Node> symbolComposition = unionSymbolsComposition.get(nd.data);
+				Set<Node> symbolComposition = stateComposition.get(nd.data);
 				if (symbolComposition != null) {
 					symbolComposition.addAll(upComposition);
 				} else { 
-					unionSymbolsComposition.put(nd.data, new HashSet<Node>(upComposition));
+					stateComposition.put(nd.data, new HashSet<Node>(upComposition));
 				}
 			}
 		}
-		return unionSymbolsComposition;
+		return stateComposition;
 	}
 	
 	/**
