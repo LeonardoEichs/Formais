@@ -164,9 +164,9 @@ public class RegularGrammar extends RegularLanguage{
 					if(vn2 != rg.s) {
 						return false;
 					}
-					else if(rg.productions.values().stream().anyMatch(list -> list.stream().anyMatch(pr -> pr.length() > 1 && pr == vn2))) {
-						return false;
-					}
+					//else if(rg.productions.values().stream().anyMatch(list -> list.stream().anyMatch(pr -> pr.length() > 1 && pr == vn2))) {
+					//	return false;
+					//}
 				}
 				prodList.add(prod);
 				rg.productions.put(vn2, prodList);
